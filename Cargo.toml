@@ -8,3 +8,4 @@ poise = "0.6.1"
 serenity = {version = "0.12.2", features = ["cache","builder","chrono","collector","client","framework","http","gateway","utils"]}
 tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
 chrono-tz = "0.9.0"
+chrono = "0.4.38"

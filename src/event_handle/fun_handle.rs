@@ -17,6 +17,7 @@ pub async fn dont_say_this_name(
                 format!("Nao falamos esse nome aqui!!!"),
             )
             .await?;
+        new_message.delete(ctx).await?;
     }
     Ok(())
 }

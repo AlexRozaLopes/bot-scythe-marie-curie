@@ -16,6 +16,12 @@ impl Membro {
     pub fn set_ativo(&mut self, ativo: bool) {
         self.ativo = ativo;
     }
+    pub fn ativo(&self) -> bool {
+        self.ativo
+    }
+    pub fn membro(&self) -> &Member {
+        &self.membro
+    }
 }
 
 
