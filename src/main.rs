@@ -3,8 +3,9 @@ use std::sync::Mutex;
 
 use poise::serenity_prelude as serenity;
 use serenity::all::UserId;
-use crate::event_handle::add_handle::add_role_a_new_user;
 
+use crate::event_handle::add_handle::add_role_a_new_user;
+use crate::event_handle::create_roles::create_role_imunidade;
 use crate::event_handle::death_handle::death_handler;
 use crate::event_handle::fun_handle::dont_say_this_name;
 use crate::model::membro::Membro;
@@ -59,16 +60,15 @@ async fn event_handler(
     match event {
         serenity::FullEvent::Ready { data_about_bot, .. } => {
             println!("Logged in as {}", data_about_bot.user.name);
+            create_role_imunidade(ctx, _framework, data_about_bot).await?;
         }
         serenity::FullEvent::Message { new_message } => {
-            death_handler(ctx,_framework, data, new_message).await?;
+            death_handler(ctx, _framework, data, new_message).await?;
             dont_say_this_name(ctx, _framework, new_message).await?;
         }
-        serenity::FullEvent::GuildMemberAddition { new_member,.. } => {
+        serenity::FullEvent::GuildMemberAddition { new_member, .. } => {
             println!("membro novo!");
-            add_role_a_new_user(ctx,_framework,new_member).await?;
-
-
+            add_role_a_new_user(ctx, _framework, new_member).await?;
         }
         _ => {}
     }

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use chrono::{Datelike, DateTime, Utc};
 use poise::serenity_prelude as serenity;
-use serenity::all::{Message, Timestamp, UserId};
+use serenity::all::{Message, Role, Timestamp, UserId};
 
 use crate::{Data, Error};
 use crate::model::membro::Membro;
@@ -13,6 +13,8 @@ pub async fn death_handler(
     data: &Data,
     new_message: &Message,
 ) -> Result<(), Error> {
+    let roles_guild = ctx.http.get_guild_roles(new_message.guild_id.unwrap()).await?;
+
     let membros_quit: HashMap<UserId, Membro> = {
         let mut membros = data.membros.lock().unwrap();
         if membros.is_empty() {
@@ -35,7 +37,7 @@ pub async fn death_handler(
     };
 
     for (_, m) in membros_quit {
-        if !m.membro().user.bot {
+        if !m.membro().user.bot || is_imune(m.clone(), roles_guild.clone()) {
             let reason = format!("{} {}.", "Seu tempo aqui terminou; chegou a hora de partir", m.membro().clone().user.name);
             match m.membro().kick_with_reason(ctx, &*reason).await {
                 Ok(()) => println!("membro {} excluido com sucesso", m.membro().clone().user.name),
@@ -43,11 +45,18 @@ pub async fn death_handler(
             }
         }
     }
-
     Ok(())
+}
+
+fn is_imune(membro: Membro, roles_guild: Vec<Role>) -> bool {
+    let id = roles_guild.iter().find(|r| r.name == "Imunidade");
+    match id {
+        Some(x) => membro.membro().roles.contains(&x.id),
+        None => false
+    }
 }
 
 fn months_diff(atual:DateTime<Utc>, antigo: Timestamp) -> bool {
     let months_diff = atual.year() * 12 + atual.month() as i32 - (antigo.year() * 12 + antigo.month() as i32);
-    months_diff > 3
+    months_diff > 1
 }
