@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
+use chrono::{DateTime, Utc};
 
 use poise::serenity_prelude as serenity;
 use serenity::all::UserId;
@@ -17,6 +18,7 @@ pub mod event_handle;
 pub struct Data {
     votes: Mutex<HashMap<String, u32>>,
     membros: Mutex<HashMap<UserId, Membro>>,
+    data_criacao: DateTime<Utc>
 }
 
 // User data, which is stored and accessible in all command invocations
@@ -40,7 +42,7 @@ async fn main() {
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data { votes: Mutex::new(HashMap::new()), membros: Mutex::new(HashMap::new()) })
+                Ok(Data { votes: Mutex::new(HashMap::new()), membros: Mutex::new(HashMap::new()), data_criacao: Utc::now() })
             })
         })
         .build();

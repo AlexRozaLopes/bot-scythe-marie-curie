@@ -31,13 +31,13 @@ pub async fn death_handler(
 
         let data_hoje = Utc::now();
 
-        membros_offline.iter().filter(|(_, m)| months_diff(data_hoje,m.membro().joined_at.unwrap()))
+        membros_offline.iter().filter(|(_, m)| months_diff(data_hoje,m.membro().joined_at.unwrap(),data.data_criacao))
             .map(|(id, m)| (id.clone(), m.clone()))
             .collect()
     };
 
     for (_, m) in membros_quit {
-        if !m.membro().user.bot || is_imune(m.clone(), roles_guild.clone()) {
+        if !m.membro().user.bot || !is_imune(m.clone(), roles_guild.clone()) {
             let reason = format!("{} {}.", "Seu tempo aqui terminou; chegou a hora de partir", m.membro().clone().user.name);
             match m.membro().kick_with_reason(ctx, &*reason).await {
                 Ok(()) => println!("membro {} excluido com sucesso", m.membro().clone().user.name),
@@ -56,7 +56,8 @@ fn is_imune(membro: Membro, roles_guild: Vec<Role>) -> bool {
     }
 }
 
-fn months_diff(atual:DateTime<Utc>, antigo: Timestamp) -> bool {
-    let months_diff = atual.year() * 12 + atual.month() as i32 - (antigo.year() * 12 + antigo.month() as i32);
+fn months_diff(atual:DateTime<Utc>, antigo: Timestamp,data_bot: DateTime<Utc>) -> bool {
+    let data_comp = atual.max(data_bot);
+    let months_diff = data_comp.year() * 12 + data_comp.month() as i32 - (antigo.year() * 12 + antigo.month() as i32);
     months_diff > 1
 }
