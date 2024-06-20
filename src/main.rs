@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use chrono::{DateTime, Utc};
 
 use poise::serenity_prelude as serenity;
-use serenity::all::UserId;
+use serenity::all::{GuildId, UserId};
 
 use crate::event_handle::add_handle::add_role_a_new_user;
 use crate::event_handle::create_roles::create_role_imunidade;
@@ -17,7 +17,7 @@ pub mod event_handle;
 
 pub struct Data {
     votes: Mutex<HashMap<String, u32>>,
-    membros: Mutex<HashMap<UserId, Membro>>,
+    membros: Mutex<HashMap<GuildId,HashMap<UserId, Membro>>>,
     data_criacao: DateTime<Utc>
 }
 

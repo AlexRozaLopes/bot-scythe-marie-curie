@@ -17,15 +17,19 @@ pub async fn death_handler(
 
     let membros_quit: HashMap<UserId, Membro> = {
         let mut membros = data.membros.lock().unwrap();
-        if membros.is_empty() {
+        let option_m = membros.get(&new_message.guild_id.unwrap());
+        if option_m.is_none() {
+            let mut membros_guild = HashMap::new();
             let hash_map = &ctx.cache.guild(&new_message.guild_id.unwrap()).unwrap().members;
             hash_map.iter().for_each(|(id, m)| {
-                membros.insert(*id, Membro::new(m.clone()));
-            })
+                membros_guild.insert(*id, Membro::new(m.clone()));
+            });
+            membros.insert(new_message.guild_id.unwrap(),membros_guild);
         }
-        membros.entry(new_message.clone().author.id).and_modify(|m| m.set_ativo(true));
+        let mut membros_guild_atual = membros.get(&new_message.guild_id.unwrap()).unwrap().clone();
+        membros_guild_atual.entry(new_message.clone().author.id).and_modify(|m| m.set_ativo(true));
 
-        let membros_offline: HashMap<UserId, Membro> = membros.iter().filter(|(_, m)| !m.ativo())
+        let membros_offline: HashMap<UserId, Membro> = membros_guild_atual.iter().filter(|(_, m)| !m.ativo())
             .map(|(id, m)| (id.clone(), m.clone()))
             .collect();
 
