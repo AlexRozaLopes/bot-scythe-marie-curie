@@ -1,4 +1,5 @@
 use crate::{Context, Error};
+use poise::serenity_prelude as serenity;
 
 /// Show this help menu
 #[poise::command(prefix_command, track_edits, slash_command)]
@@ -72,6 +73,32 @@ pub async fn getvotes(
 
         ctx.say(response).await?;
     };
+
+    Ok(())
+}
+
+#[poise::command(slash_command, prefix_command, reuse_response)]
+pub async fn info_about_me(ctx: Context<'_>) -> Result<(), Error> {
+    let image_url = "https://github.com/AlexRozaLopes/bot-scythe-marie-curie/tree/main/src/images/bmc.jpeg";
+
+    let reply = {
+        let embed = serenity::CreateEmbed::default()
+            .description("Bot para gerenciamento de servidores!!!")
+            .image(image_url);
+
+        let components = vec![serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new_link("https://github.com/AlexRozaLopes/bot-scythe-marie-curie")
+                .label("oficial repo!")
+                .style(serenity::ButtonStyle::Primary),
+        ])];
+
+        poise::CreateReply::default()
+            .content("INFO:")
+            .embed(embed)
+            .components(components)
+    };
+
+    ctx.send(reply).await?;
 
     Ok(())
 }
