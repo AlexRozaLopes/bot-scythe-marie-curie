@@ -1,5 +1,7 @@
-use crate::{Context, Error};
 use poise::serenity_prelude as serenity;
+use serenity::builder::CreateEmbedAuthor;
+
+use crate::{Context, Error};
 
 /// Show this help menu
 #[poise::command(prefix_command, track_edits, slash_command)]
@@ -77,23 +79,23 @@ pub async fn getvotes(
     Ok(())
 }
 
-#[poise::command(slash_command, prefix_command, reuse_response)]
+/// info sobre o bot!
+#[poise::command(slash_command, prefix_command)]
 pub async fn info_about_me(ctx: Context<'_>) -> Result<(), Error> {
-    let image_url = "https://github.com/AlexRozaLopes/bot-scythe-marie-curie/tree/main/src/images/bmc.jpeg";
-
     let reply = {
+        let img_url = "https://avatars.githubusercontent.com/u/69591013?s=400&u=716d3458707ff7035b6d303db868118effed0495&v=4";
         let embed = serenity::CreateEmbed::default()
             .description("Bot para gerenciamento de servidores!!!")
-            .image(image_url);
+            .author(CreateEmbedAuthor::new("AlexRoza").icon_url(img_url));
 
         let components = vec![serenity::CreateActionRow::Buttons(vec![
             serenity::CreateButton::new_link("https://github.com/AlexRozaLopes/bot-scythe-marie-curie")
                 .label("oficial repo!")
-                .style(serenity::ButtonStyle::Primary),
+                .style(serenity::ButtonStyle::Success),
         ])];
 
         poise::CreateReply::default()
-            .content("INFO:")
+            .content("Made By:")
             .embed(embed)
             .components(components)
     };

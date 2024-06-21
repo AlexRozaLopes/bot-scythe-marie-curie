@@ -10,7 +10,6 @@ use crate::event_handle::create_roles::create_role_imunidade;
 use crate::event_handle::death_handle::death_handler;
 use crate::event_handle::fun_handle::dont_say_this_name;
 use crate::model::membro::Membro;
-use crate::slash_command::details_command::info_about_me;
 
 pub mod slash_command;
 pub mod model;
@@ -34,7 +33,7 @@ async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![slash_command::age_command::age(), slash_command::details_command::getvotes(), slash_command::details_command::help(),
-                           slash_command::details_command::vote(), slash_command::life_command::life(), info_about_me()],
+                           slash_command::details_command::vote(), slash_command::life_command::life(), slash_command::details_command::info_about_me()],
             event_handler: |ctx, event, framework, data| {
                 Box::pin(event_handler(ctx, event, framework, data))
             },

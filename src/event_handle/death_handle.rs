@@ -13,6 +13,8 @@ pub async fn death_handler(
     data: &Data,
     new_message: &Message,
 ) -> Result<(), Error> {
+    if new_message.guild_id.is_none() { Ok(()) } else {
+
     let roles_guild = ctx.http.get_guild_roles(new_message.guild_id.unwrap()).await?;
 
     let membros_quit: HashMap<UserId, Membro> = {
@@ -24,7 +26,7 @@ pub async fn death_handler(
             hash_map.iter().for_each(|(id, m)| {
                 membros_guild.insert(*id, Membro::new(m.clone()));
             });
-            membros.insert(new_message.guild_id.unwrap(),membros_guild);
+            membros.insert(new_message.guild_id.unwrap(), membros_guild);
         }
         let mut membros_guild_atual = membros.get(&new_message.guild_id.unwrap()).unwrap().clone();
         membros_guild_atual.entry(new_message.clone().author.id).and_modify(|m| m.set_ativo(true));
@@ -35,7 +37,7 @@ pub async fn death_handler(
 
         let data_hoje = Utc::now();
 
-        membros_offline.iter().filter(|(_, m)| months_diff(data_hoje,m.membro().joined_at.unwrap(),data.data_criacao))
+        membros_offline.iter().filter(|(_, m)| months_diff(data_hoje, m.membro().joined_at.unwrap(), data.data_criacao))
             .map(|(id, m)| (id.clone(), m.clone()))
             .collect()
     };
@@ -50,6 +52,7 @@ pub async fn death_handler(
         }
     }
     Ok(())
+        }
 }
 
 fn is_imune(membro: Membro, roles_guild: Vec<Role>) -> bool {
@@ -60,7 +63,7 @@ fn is_imune(membro: Membro, roles_guild: Vec<Role>) -> bool {
     }
 }
 
-fn months_diff(atual:DateTime<Utc>, antigo: Timestamp,data_bot: DateTime<Utc>) -> bool {
+fn months_diff(atual: DateTime<Utc>, antigo: Timestamp, data_bot: DateTime<Utc>) -> bool {
     let data_comp = atual.max(data_bot);
     let months_diff = data_comp.year() * 12 + data_comp.month() as i32 - (antigo.year() * 12 + antigo.month() as i32);
     months_diff > 1
