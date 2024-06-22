@@ -1,5 +1,5 @@
 use poise::serenity_prelude as serenity;
-use serenity::builder::CreateEmbedAuthor;
+use serenity::builder::{CreateEmbedAuthor, CreateEmbedFooter};
 
 use crate::{Context, Error};
 
@@ -86,7 +86,10 @@ pub async fn info_about_me(ctx: Context<'_>) -> Result<(), Error> {
         let img_url = "https://avatars.githubusercontent.com/u/69591013?s=400&u=716d3458707ff7035b6d303db868118effed0495&v=4";
         let embed = serenity::CreateEmbed::default()
             .description("Bot para gerenciamento de servidores!!!")
-            .author(CreateEmbedAuthor::new("AlexRoza").icon_url(img_url));
+            .footer(CreateEmbedFooter::new("\u{200B}").icon_url("https://img.icons8.com/?size=160&id=AeV543ttZrcT&format=png"))
+            .author(CreateEmbedAuthor::new("AlexRoza").icon_url(img_url))
+            .field("contato: ", "alex.roza.dev@gmail.com", false)
+            .field("------------------------------------------", "", true);
 
         let components = vec![serenity::CreateActionRow::Buttons(vec![
             serenity::CreateButton::new_link("https://github.com/AlexRozaLopes/bot-scythe-marie-curie")
@@ -95,7 +98,6 @@ pub async fn info_about_me(ctx: Context<'_>) -> Result<(), Error> {
         ])];
 
         poise::CreateReply::default()
-            .content("Made By:")
             .embed(embed)
             .components(components)
     };
