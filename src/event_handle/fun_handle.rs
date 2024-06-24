@@ -17,7 +17,7 @@ pub async fn dont_say_this_name(
             new_message
                 .reply(
                     ctx,
-                    format!("Nao falamos esse nome aqui!!!"),
+                    "Nao falamos esse nome aqui!!!".to_string(),
                 )
                 .await?;
             new_message.delete(ctx).await?;
