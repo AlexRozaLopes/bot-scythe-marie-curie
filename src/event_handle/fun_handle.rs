@@ -9,7 +9,7 @@ pub async fn dont_say_this_name(
     new_message: &Message,
     data: &Data,
 ) -> Result<(), Error> {
-    let ban_words = { data.ban_words.lock().unwrap().get(&new_message.guild_id.unwrap()).unwrap().clone() };
+    let ban_words = { data.ban_words.lock().unwrap().get(&new_message.guild_id.unwrap()).unwrap_or(&vec!["voldemort".to_string()]).clone() };
     for bn in ban_words {
         if new_message.content.to_lowercase().contains(&bn)
             && new_message.author.id != ctx.cache.current_user().id

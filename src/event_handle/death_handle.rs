@@ -35,7 +35,20 @@ async fn death(ctx: &serenity::Context, guild_id: GuildId, author_id: UserId, da
             membros.insert(guild_id, membros_guild);
         }
         let mut membros_guild_atual = membros.get(&guild_id).unwrap().clone();
-        membros_guild_atual.entry(author_id).and_modify(|m| m.set_ativo(true));
+        membros_guild_atual.entry(author_id).and_modify(|m| {
+            m.set_ativo(true);
+            m.set_ativo_em(Option::from(Utc::now()))
+        });
+        
+        membros_guild_atual.iter_mut().for_each(|(_,m)|{
+           if !m.ativo_em().is_none() {
+               if months_diff(Utc::now(), Timestamp::from(m.ativo_em().unwrap()), m.ativo_em().unwrap()) {
+                   m.set_ativo(false);
+               }
+           }
+        });
+
+        membros.entry(guild_id).and_modify(|m| *m = membros_guild_atual.clone());
 
         let membros_offline: HashMap<UserId, Membro> = membros_guild_atual.iter().filter(|(_, m)| !m.ativo())
             .map(|(id, m)| (id.clone(), m.clone()))
