@@ -19,6 +19,7 @@ pub struct Data {
     votes: Mutex<HashMap<String, u32>>,
     membros: Mutex<HashMap<GuildId, HashMap<UserId, Membro>>>,
     data_criacao: DateTime<Utc>,
+    ban_words: Mutex<HashMap<GuildId, Vec<String>>>,
 }
 
 // User data, which is stored and accessible in all command invocations
@@ -33,7 +34,9 @@ async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![slash_command::age_command::age(), slash_command::details_command::getvotes(), slash_command::details_command::help(),
-                           slash_command::details_command::vote(), slash_command::life_command::life(), slash_command::details_command::info_about_me()],
+                           slash_command::details_command::vote(), slash_command::life_command::life(), slash_command::details_command::info_about_me(),
+                           slash_command::ban_words_command::add_ban_word(),
+            ],
             event_handler: |ctx, event, framework, data| {
                 Box::pin(event_handler(ctx, event, framework, data))
             },
@@ -42,7 +45,7 @@ async fn main() {
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data { votes: Mutex::new(HashMap::new()), membros: Mutex::new(HashMap::new()), data_criacao: Utc::now() })
+                Ok(Data { votes: Mutex::new(HashMap::new()), membros: Mutex::new(HashMap::new()), data_criacao: Utc::now(), ban_words: Mutex::new(HashMap::new()) })
             })
         })
         .build();
@@ -66,7 +69,7 @@ async fn event_handler(
         }
         serenity::FullEvent::Message { new_message } => {
             death_handler(ctx, _framework, data, new_message).await?;
-            dont_say_this_name(ctx, _framework, new_message).await?;
+            dont_say_this_name(ctx, _framework, new_message,data).await?;
         }
         serenity::FullEvent::GuildMemberAddition { new_member, .. } => {
             println!("membro novo!");

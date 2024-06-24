@@ -7,17 +7,22 @@ pub async fn dont_say_this_name(
     ctx: &serenity::Context,
     _framework: poise::FrameworkContext<'_, Data, Error>,
     new_message: &Message,
+    data: &Data,
 ) -> Result<(), Error> {
-    if new_message.content.to_lowercase().contains("voldemort")
-        && new_message.author.id != ctx.cache.current_user().id
-    {
-        new_message
-            .reply(
-                ctx,
-                format!("Nao falamos esse nome aqui!!!"),
-            )
-            .await?;
-        new_message.delete(ctx).await?;
+    let ban_words = { data.ban_words.lock().unwrap().get(&new_message.guild_id.unwrap()).unwrap().clone() };
+    for bn in ban_words {
+        if new_message.content.to_lowercase().contains(&bn)
+            && new_message.author.id != ctx.cache.current_user().id
+        {
+            new_message
+                .reply(
+                    ctx,
+                    format!("Nao falamos esse nome aqui!!!"),
+                )
+                .await?;
+            new_message.delete(ctx).await?;
+        }
     }
+
     Ok(())
 }
