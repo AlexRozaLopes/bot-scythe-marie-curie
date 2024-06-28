@@ -23,7 +23,7 @@ pub async fn dont_say_this_name(
             new_message.delete(ctx).await?;
 
             let intro_description = "Recentemente, recebemos relatos e observamos comportamentos que não estão de acordo com os padrões de conduta esperados neste servidor.".to_string();
-            let motivo_description = format!("Esse incidente ocorreu devido esta mensagem em particular ====> {}", new_message.content);
+            let motivo_description = format!("Esse incidente ocorreu devido esta mensagem em particular: || **{}** ||", new_message.content);
             let intro = CreateEmbed::new().title("Conduta Inapropriada").description(intro_description).color(Colour::RED);
             let motivo = CreateEmbed::new().title("Principal Motivo").description(motivo_description).color(Colour::RED);
             let message_into = CreateMessage::new().add_embed(intro);
