@@ -23,7 +23,7 @@ pub async fn help(
     Ok(())
 }
 
-/// Vote for something
+/// vote em alguma coisa
 ///
 /// Enter `~vote pumpkin` to vote for pumpkins
 #[poise::command(prefix_command, slash_command)]
