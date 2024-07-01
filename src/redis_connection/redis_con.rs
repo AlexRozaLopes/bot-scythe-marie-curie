@@ -1,8 +1,9 @@
 use redis::aio::MultiplexedConnection;
+use redis::AsyncCommands;
 use redis::Commands;
 
 pub async fn get_redis_connection() -> MultiplexedConnection {
-    let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+    let client = redis::Client::open("redis://127.0.0.1/").unwrap_or(redis::Client::open("redis://redis-bot/").unwrap());
     client.get_multiplexed_async_connection().await.unwrap()
 }
 
