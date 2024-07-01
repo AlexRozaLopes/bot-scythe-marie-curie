@@ -1,7 +1,11 @@
+use std::collections::HashMap;
 use poise::serenity_prelude as serenity;
-use serenity::all::{Colour, Member, Role};
+use redis::AsyncCommands;
+use serenity::all::{Colour, Member, Role, UserId};
 
 use crate::{Data, Error};
+use crate::model::membro::Membro;
+use crate::redis_connection::redis_con::get_redis_connection;
 
 pub async fn add_role_a_new_user(
     ctx: &serenity::Context,
@@ -22,7 +26,21 @@ pub async fn add_role_a_new_user(
         role = ctx.http.create_role(new_member.guild_id, &role, None).await?;
     }
 
+    let _ = save_membro(new_member).await;
+
     ctx.http.add_member_role(new_member.guild_id, new_member.user.id, role_inicial.unwrap_or_else(||role.id), None).await?;
     println!("role add com sucesso!!!");
+    Ok(())
+}
+
+async fn save_membro(membro: &Member) -> Result<(), Error> {
+    let mut redis = get_redis_connection().await;
+    let m = Membro::new(membro.clone());
+    let membros_guild_json :String = redis.get(membro.guild_id.to_string()).await?;
+    let mut membros_guild: HashMap<UserId,Membro> = serde_json::from_str(&*membros_guild_json)?;
+    membros_guild.insert(membro.user.id,m);
+    let smg = serde_json::to_string(&membros_guild)?;
+    let _ :() = redis.set(membro.guild_id.to_string(),smg).await.unwrap();
+    println!("membro add a lista do redis com sucesso!");
     Ok(())
 }

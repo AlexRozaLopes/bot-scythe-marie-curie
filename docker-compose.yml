@@ -1,0 +1,23 @@
+networks:
+  net-bot:
+    driver: bridge
+
+services:
+  bot:
+    image: alexroza/bot-scythe-marie-curie
+    networks:
+      - net-bot
+    depends_on:
+      - redis-bot
+
+  redis-bot:
+    image: redis/redis-stack
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - /data
+    networks:
+      - net-bot
+
+

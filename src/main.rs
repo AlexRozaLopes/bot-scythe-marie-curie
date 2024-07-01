@@ -3,21 +3,20 @@ use std::sync::Mutex;
 
 use chrono::{DateTime, Utc};
 use poise::serenity_prelude as serenity;
-use serenity::all::{GuildId, UserId};
+use serenity::all::GuildId;
 
 use crate::event_handle::add_handle::add_role_a_new_user;
 use crate::event_handle::create_roles::create_role_imunidade;
 use crate::event_handle::death_handle::{death_handle_voice, death_handler};
 use crate::event_handle::fun_handle::dont_say_this_name;
-use crate::model::membro::Membro;
 
 pub mod slash_command;
 pub mod model;
 pub mod event_handle;
+mod redis_connection;
 
 pub struct Data {
     votes: Mutex<HashMap<String, u32>>,
-    membros: Mutex<HashMap<GuildId, HashMap<UserId, Membro>>>,
     data_criacao: DateTime<Utc>,
     ban_words: Mutex<HashMap<GuildId, Vec<String>>>,
 }
@@ -45,7 +44,7 @@ async fn main() {
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data { votes: Mutex::new(HashMap::new()), membros: Mutex::new(HashMap::new()), data_criacao: Utc::now(), ban_words: Mutex::new(HashMap::new()) })
+                Ok(Data { votes: Mutex::new(HashMap::new()), data_criacao: Utc::now(), ban_words: Mutex::new(HashMap::new()) })
             })
         })
         .build();
@@ -69,13 +68,13 @@ async fn event_handler(
         }
         serenity::FullEvent::Message { new_message } => {
             death_handler(ctx, _framework, data, new_message).await?;
-            dont_say_this_name(ctx, _framework, new_message,data).await?;
+            dont_say_this_name(ctx, _framework, new_message, data).await?;
         }
         serenity::FullEvent::GuildMemberAddition { new_member, .. } => {
             println!("membro novo!");
             add_role_a_new_user(ctx, _framework, new_member).await?;
         }
-        serenity::FullEvent::VoiceStateUpdate {new,..} => {
+        serenity::FullEvent::VoiceStateUpdate { new, .. } => {
             death_handle_voice(ctx, _framework, data, new).await?;
         }
         _ => {}

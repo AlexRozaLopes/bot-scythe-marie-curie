@@ -2,10 +2,12 @@ use std::collections::HashMap;
 
 use chrono::{Datelike, DateTime, Utc};
 use poise::serenity_prelude as serenity;
+use redis::AsyncCommands;
 use serenity::all::{GuildId, Message, Role, Timestamp, UserId, VoiceState};
 
 use crate::{Data, Error};
 use crate::model::membro::Membro;
+use crate::redis_connection::redis_con::get_redis_connection;
 
 pub async fn death_handler(
     ctx: &serenity::Context,
@@ -24,31 +26,38 @@ async fn death(ctx: &serenity::Context, guild_id: GuildId, author_id: UserId, da
     let roles_guild = { ctx.http.get_guild_roles(guild_id).await? };
 
     let membros_quit: HashMap<UserId, Membro> = {
-        let mut membros = data.membros.lock().unwrap();
-        let option_m = membros.get(&guild_id);
+        let mut membros = get_redis_connection().await;
+        let option_m: Option<String> = membros.get(&guild_id.to_string()).await?;
         if option_m.is_none() {
-            let mut membros_guild = HashMap::new();
-            let hash_map = &ctx.cache.guild(&guild_id).unwrap().members;
-            hash_map.iter().for_each(|(id, m)| {
-                membros_guild.insert(*id, Membro::new(m.clone()));
-            });
-            membros.insert(guild_id, membros_guild);
+            let membros_guild = {
+                let mut membros_guild = HashMap::new();
+                let hash_map = &ctx.cache.guild(&guild_id).unwrap().members;
+                hash_map.iter().for_each(|(id, m)| {
+                    membros_guild.insert(*id, Membro::new(m.clone()));
+                });
+                membros_guild
+            };
+            let _: () = membros.set(guild_id.to_string(), serde_json::to_string(&membros_guild)?).await?;
         }
-        let mut membros_guild_atual = membros.get(&guild_id).unwrap().clone();
+
+        let redis_hash: String = membros.get(&guild_id.to_string()).await?;
+        let mut membros_guild_atual: HashMap<UserId, Membro> = serde_json::from_str(&*redis_hash)?;
         membros_guild_atual.entry(author_id).and_modify(|m| {
             m.set_ativo(true);
             m.set_ativo_em(Option::from(Utc::now()))
         });
-        
-        membros_guild_atual.iter_mut().for_each(|(_,m)|{
-           if !m.ativo_em().is_none() {
-               if months_diff(Utc::now(), Timestamp::from(m.ativo_em().unwrap()), m.ativo_em().unwrap()) {
-                   m.set_ativo(false);
-               }
-           }
+
+        membros_guild_atual.iter_mut().for_each(|(_, m)| {
+            if !m.ativo_em().is_none() {
+                if months_diff(Utc::now(), Timestamp::from(m.ativo_em().unwrap()), m.ativo_em().unwrap()) {
+                    m.set_ativo(false);
+                }
+            }
         });
 
-        membros.entry(guild_id).and_modify(|m| *m = membros_guild_atual.clone());
+        let json_membros = serde_json::to_string(&membros_guild_atual)?;
+        dbg!(&json_membros);
+        let _: () = membros.set(guild_id.to_string(), json_membros).await?;
 
         let membros_offline: HashMap<UserId, Membro> = membros_guild_atual.iter().filter(|(_, m)| !m.ativo())
             .map(|(id, m)| (id.clone(), m.clone()))
@@ -62,7 +71,7 @@ async fn death(ctx: &serenity::Context, guild_id: GuildId, author_id: UserId, da
     };
 
     for (_, m) in membros_quit {
-        if !m.membro().user.bot || !is_imune(m.clone(), roles_guild.clone()) {
+        if !m.membro().user.bot && !is_imune(m.clone(), roles_guild.clone()) {
             let reason = format!("{} {}.", "Seu tempo aqui terminou; chegou a hora de partir", m.membro().clone().user.name);
             match m.membro().kick_with_reason(ctx, &*reason).await {
                 Ok(()) => println!("membro {} excluido com sucesso", m.membro().clone().user.name),
