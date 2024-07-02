@@ -1,15 +1,25 @@
 use poise::serenity_prelude as serenity;
-use serenity::all::{Colour, CreateEmbed, CreateMessage, GuildId, Message};
+use redis::{AsyncCommands, RedisResult};
+use serenity::all::{Colour, CreateEmbed, CreateMessage, Message};
 
 use crate::{Data, Error};
+use crate::redis_connection::redis_con::get_redis_connection;
 
 pub async fn dont_say_this_name(
     ctx: &serenity::Context,
     _framework: poise::FrameworkContext<'_, Data, Error>,
     new_message: &Message,
-    data: &Data,
 ) -> Result<(), Error> {
-    let ban_words = { data.ban_words.lock().unwrap().get(&new_message.guild_id.unwrap_or(GuildId::new(1))).unwrap_or(&vec!["voldemort".to_string()]).clone() };
+    let ban_words: Vec<String> = {
+        let mut redis = get_redis_connection().await;
+        let mut guild_id_string = new_message.guild_id.unwrap().to_string();
+        guild_id_string.push_str(&*"ban_word".to_string());
+        let ban_w: RedisResult<String> = redis.get(guild_id_string.clone()).await;
+        match ban_w {
+            Ok(x) => serde_json::from_str(&*x).unwrap(),
+            _ => vec!["voldemort".to_string()]
+        }
+    };
     for bn in ban_words {
         if new_message.content.to_lowercase().contains(&bn)
             && new_message.author.id != ctx.cache.current_user().id
