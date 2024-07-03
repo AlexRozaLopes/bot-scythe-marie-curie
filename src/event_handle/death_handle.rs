@@ -92,8 +92,10 @@ fn is_imune(membro: Membro, roles_guild: Vec<Role>) -> bool {
 }
 
 fn months_diff(atual: DateTime<Utc>, antigo: Timestamp, data_bot: DateTime<Utc>) -> bool {
-    let data_comp = atual.max(data_bot);
-    let months_diff = data_comp.year() * 12 + data_comp.month() as i32 - (antigo.year() * 12 + antigo.month() as i32);
+
+    let data_comp = antigo.max(Timestamp::from(data_bot));
+
+    let months_diff = atual.year() * 12 + atual.month() as i32 - (data_comp.year() * 12 + data_comp.month() as i32);
     months_diff > 1
 }
 
