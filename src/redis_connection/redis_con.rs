@@ -1,6 +1,4 @@
 use redis::aio::MultiplexedConnection;
-use redis::AsyncCommands;
-use redis::Commands;
 
 pub async fn get_redis_connection() -> MultiplexedConnection {
     let client = redis::Client::open("redis://127.0.0.1/").unwrap();
@@ -18,7 +16,7 @@ async fn test_fetch_an_integer() {
     let _: () = con.set("my_key", 0).unwrap();
 
     // Chamar a função a ser testada
-    let result : i32 = {
+    let result: i32 = {
         // connect to redis
         let mut con = get_redis_connection().await;
         // throw away the result, just make sure it does not fail

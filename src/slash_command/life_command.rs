@@ -16,8 +16,6 @@ pub async fn life(
 
     let member = ctx.http().get_member(ctx.guild_id().unwrap(), u.id).await?;
 
-    dbg!(&member);
-
     let data_formatada = get_data_br(member.joined_at.unwrap());
 
     let response = format!("{} Esta conosco desde {}", u.name, data_formatada);

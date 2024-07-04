@@ -32,7 +32,7 @@ async fn main() {
                            slash_command::details_command::vote(), slash_command::life_command::life(), slash_command::details_command::info_about_me(),
                            slash_command::ban_words_command::add_ban_word(), slash_command::remove_ban_words_command::remove_ban_word(), slash_command::life_command::life_time(),
             ],
-            event_handler: |ctx, event, framework, data| {
+            event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))
             },
             ..Default::default()
