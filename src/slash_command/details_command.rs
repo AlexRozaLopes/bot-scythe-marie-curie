@@ -44,7 +44,7 @@ pub async fn vote(
     Ok(())
 }
 
-/// Retrieve number of votes
+/// Recupere todos os votos!
 ///
 /// Retrieve the number of votes either in general, or for a specific choice:
 /// ```
