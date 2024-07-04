@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use chrono::{DateTime, Utc};
 use poise::serenity_prelude as serenity;
 
 use crate::event_handle::add_handle::add_role_a_new_user;
@@ -16,7 +15,6 @@ mod redis_connection;
 
 pub struct Data {
     votes: Mutex<HashMap<String, u32>>,
-    data_criacao: DateTime<Utc>,
 }
 
 // User data, which is stored and accessible in all command invocations
@@ -32,17 +30,17 @@ async fn main() {
         .options(poise::FrameworkOptions {
             commands: vec![slash_command::age_command::age(), slash_command::details_command::getvotes(), slash_command::details_command::help(),
                            slash_command::details_command::vote(), slash_command::life_command::life(), slash_command::details_command::info_about_me(),
-                           slash_command::ban_words_command::add_ban_word(),slash_command::remove_ban_words_command::remove_ban_word(),
+                           slash_command::ban_words_command::add_ban_word(), slash_command::remove_ban_words_command::remove_ban_word(), slash_command::life_command::life_time(),
             ],
             event_handler: |ctx, event, framework, data| {
-                Box::pin(event_handler(ctx, event, framework, data))
+                Box::pin(event_handler(ctx, event, framework))
             },
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data { votes: Mutex::new(HashMap::new()), data_criacao: Utc::now() })
+                Ok(Data { votes: Mutex::new(HashMap::new()) })
             })
         })
         .build();
@@ -57,7 +55,6 @@ async fn event_handler(
     ctx: &serenity::Context,
     event: &serenity::FullEvent,
     _framework: poise::FrameworkContext<'_, Data, Error>,
-    data: &Data,
 ) -> Result<(), Error> {
     match event {
         serenity::FullEvent::Ready { data_about_bot, .. } => {
@@ -65,7 +62,7 @@ async fn event_handler(
             create_role_imunidade(ctx, _framework, data_about_bot).await?;
         }
         serenity::FullEvent::Message { new_message } => {
-            death_handler(ctx, _framework, data, new_message).await?;
+            death_handler(ctx, _framework, new_message).await?;
             dont_say_this_name(ctx, _framework, new_message).await?;
         }
         serenity::FullEvent::GuildMemberAddition { new_member, .. } => {
@@ -73,7 +70,7 @@ async fn event_handler(
             add_role_a_new_user(ctx, _framework, new_member).await?;
         }
         serenity::FullEvent::VoiceStateUpdate { new, .. } => {
-            death_handle_voice(ctx, _framework, data, new).await?;
+            death_handle_voice(ctx, _framework, new).await?;
         }
         _ => {}
     }

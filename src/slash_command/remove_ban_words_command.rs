@@ -23,13 +23,13 @@ pub async fn remove_ban_word(
         match json_list {
             Ok(x) => {
                 let mut list_ban: Vec<String> = serde_json::from_str(&*x)?;
-                if(list_ban.contains(&palavra)) {
+                if list_ban.contains(&palavra) {
                     list_ban.retain(|p| p.clone() != palavra.clone());
                 };
                 let _: () = redis.set(guild_id_string, to_string(&list_ban)?).await.unwrap();
             }
             Err(_) => {
-                let vec_v = to_string(&vec!["voldemort".to_string(),palavra])?;
+                let vec_v = to_string(&vec!["voldemort".to_string(), palavra])?;
                 let _: () = redis.set(guild_id_string, vec_v).await.unwrap();
             }
         }
@@ -37,7 +37,7 @@ pub async fn remove_ban_word(
 
         ctx.say("banimento tirado com sucesso!").await?;
     } else {
-        ctx.say("vc nao tem permissao para usar este comando").await?;
+        ctx.say("vc nao tem permissao para usar este comando!").await?;
     }
 
     Ok(())

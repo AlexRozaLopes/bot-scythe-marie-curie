@@ -11,7 +11,7 @@ pub struct Membro {
 
 impl Membro {
     pub fn new(membro: Member) -> Self {
-        Self { membro, ativo: false, ativo_em: None }
+        Self { membro, ativo: false, ativo_em: Option::from(Utc::now()) }
     }
     pub fn set_membro(&mut self, membro: Member) {
         self.membro = membro;

@@ -1,6 +1,6 @@
 use poise::serenity_prelude as serenity;
 use redis::{AsyncCommands, RedisResult};
-use serenity::all::{Colour, CreateEmbed, CreateMessage, GuildId, Message};
+use serenity::all::{Colour, CreateEmbed, CreateMessage, Message};
 
 use crate::{Data, Error};
 use crate::redis_connection::redis_con::get_redis_connection;
@@ -12,10 +12,10 @@ pub async fn dont_say_this_name(
 ) -> Result<(), Error> {
     let ban_words: Vec<String> = {
         let mut redis = get_redis_connection().await;
-        let mut guild_id = new_message.guild_id;
+        let guild_id = new_message.guild_id;
 
         match guild_id {
-            None => {return Ok(())}
+            None => { return Ok(()) }
             Some(_) => {}
         }
 
