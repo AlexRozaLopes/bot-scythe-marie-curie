@@ -1,7 +1,13 @@
+use std::collections::HashMap;
+
 use poise::serenity_prelude as serenity;
+use redis::AsyncCommands;
+use serenity::all::{Member, UserId};
 use serenity::builder::{CreateEmbedAuthor, CreateEmbedFooter};
 
 use crate::{Context, Error};
+use crate::model::membro::Membro;
+use crate::redis_connection::redis_con::get_redis_connection;
 
 /// Show this help menu
 #[poise::command(prefix_command, track_edits, slash_command)]
@@ -104,5 +110,30 @@ pub async fn info_about_me(ctx: Context<'_>) -> Result<(), Error> {
 
     ctx.send(reply).await?;
 
+    Ok(())
+}
+
+pub async fn update_redis(new: &Option<Member>) -> Result<(), Error> {
+    match new {
+        None => {}
+        Some(m) => {
+            let mut redis = get_redis_connection().await;
+            let membros_string: String = redis.get(m.guild_id.to_string()).await.unwrap();
+            let mut membros: HashMap<UserId, Membro> = serde_json::from_str(&*membros_string).unwrap();
+
+            let membro_old = membros.get(&m.user.id).unwrap();
+            let mut membro_new = Membro::new(m.clone());
+
+
+            membro_new.set_ativo_em(membro_old.ativo_em());
+
+            membros.insert(m.user.id, membro_new);
+
+
+            let sm = serde_json::to_string(&membros)?;
+
+            let _: () = redis.set(m.guild_id.to_string(), sm).await.unwrap();
+        }
+    }
     Ok(())
 }

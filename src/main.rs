@@ -7,6 +7,7 @@ use crate::event_handle::add_handle::add_role_a_new_user;
 use crate::event_handle::create_roles::create_role_imunidade;
 use crate::event_handle::death_handle::{death_handle_voice, death_handler};
 use crate::event_handle::fun_handle::dont_say_this_name;
+use crate::slash_command::details_command::update_redis;
 
 pub mod slash_command;
 pub mod model;
@@ -71,6 +72,9 @@ async fn event_handler(
         }
         serenity::FullEvent::VoiceStateUpdate { new, .. } => {
             death_handle_voice(ctx, _framework, new).await?;
+        }
+        serenity::FullEvent::GuildMemberUpdate {new,..} => {
+            update_redis(new).await.unwrap();
         }
         _ => {}
     }
