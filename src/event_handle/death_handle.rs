@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use chrono::{Datelike, DateTime, Utc};
 use poise::serenity_prelude as serenity;
 use redis::AsyncCommands;
-use serenity::all::{GuildId, Message, Role, Timestamp, UserId, VoiceState};
+use serenity::all::{CreateEmbed, CreateMessage, GuildId, Message, Role, Timestamp, UserId, VoiceState};
 
 use crate::{Data, Error};
 use crate::model::membro::Membro;
@@ -91,6 +91,12 @@ async fn death(ctx: &serenity::Context, guild_id: GuildId, author_id: UserId) ->
                     membros.remove(&id);
                     let string_membro = serde_json::to_string(&membros).unwrap();
                     let _:() = redis.set(guild_string, string_membro).await.unwrap();
+
+                    let embed = CreateEmbed::new().description(reason);
+                    let message = CreateMessage::new().add_embed(embed);
+
+                    m.membro().user.direct_message(ctx, message).await.expect("TODO: panic message");
+
                 },
                 _ => {}
             }
