@@ -41,12 +41,11 @@ pub async fn life_time(
 ) -> Result<(), Error> {
     let m = ctx.author_member().await.unwrap().clone();
     if m.permissions.unwrap().contains(Permissions::ADMINISTRATOR) {
-
         let mut guild_id = ctx.guild_id().unwrap().to_string();
         guild_id.push_str("life_time");
         let mut redis = get_redis_connection().await;
 
-        let _:() = redis.set(guild_id,days).await.unwrap();
+        let _: () = redis.set(guild_id, days).await.unwrap();
         ctx.say("tempo definido com sucesso!").await.expect("TODO: panic message");
     } else {
         ctx.say("vc nao tem permissao para usar este comando!").await.expect("TODO: panic message");
@@ -59,7 +58,7 @@ pub async fn life_time(
 #[poise::command(slash_command, prefix_command)]
 pub async fn get_life_time(
     ctx: Context<'_>,
-) -> Result<(),Error> {
+) -> Result<(), Error> {
     let mut redis = get_redis_connection().await;
     let mut guild_id = ctx.guild_id().unwrap().to_string();
     let s = "life_time";
