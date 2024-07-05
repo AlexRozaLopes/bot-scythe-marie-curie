@@ -54,3 +54,19 @@ pub async fn life_time(
 
     Ok(())
 }
+
+/// Descubra quanto dias foram definidos para a coleita! ⚔️
+#[poise::command(slash_command, prefix_command)]
+pub async fn get_life_time(
+    ctx: Context<'_>,
+) -> Result<(),Error> {
+    let mut redis = get_redis_connection().await;
+    let mut guild_id = ctx.guild_id().unwrap().to_string();
+    let s = "life_time";
+    guild_id.push_str(s);
+    let days: i32 = redis.get(guild_id).await.unwrap();
+
+    let msg = format!("O **life_time** esta definida para: **{days}** dias!");
+    ctx.say(msg).await.expect("TODO: panic message");
+    Ok(())
+}
