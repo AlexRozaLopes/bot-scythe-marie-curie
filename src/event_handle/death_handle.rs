@@ -79,11 +79,19 @@ async fn death(ctx: &serenity::Context, guild_id: GuildId, author_id: UserId) ->
             .collect()
     };
 
-    for (_, m) in membros_quit {
+    for (id, m) in membros_quit {
         if !m.membro().user.bot && !is_imune(m.clone(), roles_guild.clone()) {
             let reason = format!("{} {}.", "Seu tempo aqui terminou; chegou a hora de partir", m.membro().clone().user.name);
             match m.membro().kick_with_reason(ctx, &*reason).await {
-                Ok(()) => println!("membro {} excluido com sucesso", m.membro().clone().user.name),
+                Ok(()) => { println!("membro {} excluido com sucesso", m.membro().clone().user.name);
+                    let mut redis = get_redis_connection().await;
+                    let guild_string = m.membro().guild_id.to_string();
+                    let membros_string: String = redis.get(guild_string.clone()).await.unwrap();
+                    let mut membros: HashMap<UserId,Membro> = serde_json::from_str(&*membros_string).unwrap();
+                    membros.remove(&id);
+                    let string_membro = serde_json::to_string(&membros).unwrap();
+                    let _:() = redis.set(guild_string, string_membro).await.unwrap();
+                },
                 _ => {}
             }
         }
