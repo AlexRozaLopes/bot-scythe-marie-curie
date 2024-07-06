@@ -7,6 +7,7 @@ use crate::event_handle::add_handle::add_role_a_new_user;
 use crate::event_handle::create_roles::create_role_imunidade;
 use crate::event_handle::death_handle::{death_handle_voice, death_handler};
 use crate::event_handle::fun_handle::dont_say_this_name;
+use crate::event_handle::silence_handle::{silence_handle, silence_handle_voice};
 use crate::slash_command::details_command::update_redis;
 
 pub mod slash_command;
@@ -32,7 +33,7 @@ async fn main() {
             commands: vec![slash_command::age_command::age(), slash_command::details_command::getvotes(), slash_command::details_command::help(),
                            slash_command::details_command::vote(), slash_command::life_command::life(), slash_command::details_command::info_about_me(),
                            slash_command::ban_words_command::add_ban_word(), slash_command::remove_ban_words_command::remove_ban_word(), slash_command::life_command::life_time(),
-                           slash_command::life_command::get_life_time()
+                           slash_command::life_command::get_life_time(),slash_command::silence_command::remove_silence_someone(),slash_command::silence_command::silence_someone()
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))
@@ -66,6 +67,7 @@ async fn event_handler(
         serenity::FullEvent::Message { new_message } => {
             death_handler(ctx, _framework, new_message).await?;
             dont_say_this_name(ctx, _framework, new_message).await?;
+            silence_handle(ctx,_framework,new_message).await?;
         }
         serenity::FullEvent::GuildMemberAddition { new_member, .. } => {
             println!("membro novo!");
@@ -73,6 +75,7 @@ async fn event_handler(
         }
         serenity::FullEvent::VoiceStateUpdate { new, .. } => {
             death_handle_voice(ctx, _framework, new).await?;
+            silence_handle_voice(ctx,_framework,new).await?;
         }
         serenity::FullEvent::GuildMemberUpdate {new,..} => {
             update_redis(new).await.unwrap();

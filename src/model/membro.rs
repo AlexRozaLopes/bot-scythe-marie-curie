@@ -7,11 +7,12 @@ pub struct Membro {
     membro: Member,
     ativo: bool,
     ativo_em: Option<DateTime<Utc>>,
+    silence: bool
 }
 
 impl Membro {
     pub fn new(membro: Member) -> Self {
-        Self { membro, ativo: false, ativo_em: Option::from(Utc::now()) }
+        Self { membro, ativo: false, ativo_em: Option::from(Utc::now()), silence: false }
     }
     pub fn set_membro(&mut self, membro: Member) {
         self.membro = membro;
@@ -30,6 +31,14 @@ impl Membro {
     }
     pub fn ativo_em(&self) -> Option<DateTime<Utc>> {
         self.ativo_em
+    }
+
+    pub fn silence(&self) -> bool {
+        self.silence
+    }
+
+    pub fn set_silence(&mut self, silence: bool) {
+        self.silence = silence;
     }
 }
 
