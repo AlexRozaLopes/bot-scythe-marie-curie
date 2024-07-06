@@ -121,18 +121,29 @@ pub async fn update_redis(new: &Option<Member>) -> Result<(), Error> {
             let membros_string: String = redis.get(m.guild_id.to_string()).await.unwrap();
             let mut membros: HashMap<UserId, Membro> = serde_json::from_str(&*membros_string).unwrap();
 
-            let membro_old = membros.get(&m.user.id).unwrap();
-            let mut membro_new = Membro::new(m.clone());
+            let membro_old = membros.get(&m.user.id);
+            match membro_old {
+                None => {
+                    let membro_new = Membro::new(m.clone());
 
+                    membros.insert(m.user.id, membro_new);
 
-            membro_new.set_ativo_em(membro_old.ativo_em());
+                    let sm = serde_json::to_string(&membros)?;
 
-            membros.insert(m.user.id, membro_new);
+                    let _: () = redis.set(m.guild_id.to_string(), sm).await.unwrap();
+                }
+                Some(mo) => {
+                    let mut membro_new = Membro::new(m.clone());
 
+                    membro_new.set_ativo_em(mo.ativo_em());
 
-            let sm = serde_json::to_string(&membros)?;
+                    membros.insert(m.user.id, membro_new);
 
-            let _: () = redis.set(m.guild_id.to_string(), sm).await.unwrap();
+                    let sm = serde_json::to_string(&membros)?;
+
+                    let _: () = redis.set(m.guild_id.to_string(), sm).await.unwrap();
+                }
+            }
         }
     }
     Ok(())
