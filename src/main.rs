@@ -33,7 +33,8 @@ async fn main() {
             commands: vec![slash_command::age_command::age(), slash_command::details_command::getvotes(), slash_command::details_command::help(),
                            slash_command::details_command::vote(), slash_command::life_command::life(), slash_command::details_command::info_about_me(),
                            slash_command::ban_words_command::add_ban_word(), slash_command::remove_ban_words_command::remove_ban_word(), slash_command::life_command::life_time(),
-                           slash_command::life_command::get_life_time(),slash_command::silence_command::remove_silence_someone(),slash_command::silence_command::silence_someone()
+                           slash_command::life_command::get_life_time(),slash_command::silence_command::remove_silence_someone(),slash_command::silence_command::silence_someone(),
+                           slash_command::silence_command::list_silence_people()
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))

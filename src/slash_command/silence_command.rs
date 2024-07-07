@@ -4,6 +4,7 @@ use poise::serenity_prelude as serenity;
 use serenity::all::{Permissions, UserId};
 
 use crate::{Context, Error};
+use crate::event_handle::silence_handle::get_silence_membros;
 use crate::model::membro::Membro;
 use crate::redis_connection::redis_con::{get_membros_redis, set_membros_redis};
 
@@ -55,6 +56,38 @@ pub async fn remove_silence_someone(
     } else {
         ctx.say("vc nao tem permissao para usar este comando!").await.expect("TODO: panic message");
     }
+
+    Ok(())
+}
+
+
+/// lista todos os membros silenciados atualmente!
+#[poise::command(slash_command, prefix_command)]
+pub async fn list_silence_people(
+    ctx: Context<'_>,
+) -> Result<(), Error> {
+
+    let guild_id = ctx.author_member().await.unwrap().guild_id;
+    let membros: HashMap<UserId, Membro> = get_membros_redis(guild_id).await;
+
+    let silence_membros = get_silence_membros(membros);
+
+    let mut lista = "### LISTA DE MEMBROS SILENCIADOS".to_string();
+
+    silence_membros.iter().for_each(|(_,m)|{
+
+        lista.push_str("\n");
+        let msg = format!("- {}", m.membro().user.name);
+        lista.push_str(&*msg)
+
+    });
+
+    if silence_membros.is_empty() {
+        ctx.say("Nenhum membro foi silenciado!").await.unwrap();
+    } else {
+        ctx.say(lista).await.unwrap();
+    }
+
 
     Ok(())
 }
