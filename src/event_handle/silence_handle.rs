@@ -14,7 +14,7 @@ pub async fn silence_handle_voice(
 ) -> Result<(), Error> {
     let membros = get_membros_redis(new.clone().guild_id.unwrap()).await;
     let membros_silenciados: HashMap<UserId, Membro> = membros.iter().filter(|(_, m)| m.silence())
-        .map(|(id,m)|(id.clone(),m.clone()))
+        .map(|(id, m)| (id.clone(), m.clone()))
         .collect();
 
     let user_id = new.member.clone().unwrap().user.id;
@@ -35,21 +35,27 @@ pub async fn silence_handle(
     _framework: FrameworkContext<'_, Data, Error>,
     new_message: &Message,
 ) -> Result<(), Error> {
-
-    let membros = get_membros_redis(new_message.guild_id.unwrap()).await;
-    let membros_silenciados: HashMap<UserId, Membro> = membros.iter().filter(|(_, m)| m.silence())
-        .map(|(id,m)|(id.clone(),m.clone()))
-        .collect();
-
-    let user_id = new_message.author.id;
-    let option_m = membros_silenciados.get(&user_id);
-
-    match option_m {
+    let guild_id = new_message.guild_id;
+    match guild_id {
         None => {}
-        Some(_) => {
-            new_message.delete(ctx).await.unwrap();
+        Some(g) => {
+            let membros = get_membros_redis(g).await;
+            let membros_silenciados: HashMap<UserId, Membro> = membros.iter().filter(|(_, m)| m.silence())
+                .map(|(id, m)| (id.clone(), m.clone()))
+                .collect();
+
+            let user_id = new_message.author.id;
+            let option_m = membros_silenciados.get(&user_id);
+
+            match option_m {
+                None => {}
+                Some(_) => {
+                    new_message.delete(ctx).await.unwrap();
+                }
+            }
         }
     }
+
 
     Ok(())
 }

@@ -11,7 +11,6 @@ use crate::redis_connection::redis_con::{get_membros_redis, set_membros_redis};
 #[poise::command(slash_command, prefix_command)]
 pub async fn silence_someone(
     ctx: Context<'_>,
-    #[description = "Escreva o motivo do SILENCE."] motivo: Option<String>,
     #[description = "Selecione um Usuario"] user: serenity::User,
 ) -> Result<(), Error> {
     let m = ctx.author_member().await.unwrap().clone();
@@ -34,11 +33,10 @@ pub async fn silence_someone(
     Ok(())
 }
 
-/// remova o silencie alguem. 📢
+/// remova o silence de alguem. 📢
 #[poise::command(slash_command, prefix_command)]
 pub async fn remove_silence_someone(
     ctx: Context<'_>,
-    #[description = "Escreva o motivo do SILENCE."] motivo: Option<String>,
     #[description = "Selecione um Usuario"] user: serenity::User,
 ) -> Result<(), Error> {
     let m = ctx.author_member().await.unwrap().clone();
