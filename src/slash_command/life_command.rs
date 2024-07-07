@@ -63,7 +63,7 @@ pub async fn get_life_time(
     let mut guild_id = ctx.guild_id().unwrap().to_string();
     let s = "life_time";
     guild_id.push_str(s);
-    let days: i32 = redis.get(guild_id).await.unwrap();
+    let days: i32 = redis.get(guild_id).await.unwrap_or(30);
 
     let msg = format!("O **life_time** esta definida para: **{days}** dias!");
     ctx.say(msg).await.expect("TODO: panic message");
