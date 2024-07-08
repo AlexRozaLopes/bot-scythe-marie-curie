@@ -28,7 +28,8 @@ pub async fn dont_say_this_name(
         }
     };
     for bn in ban_words {
-        if new_message.content.to_lowercase().contains(&bn)
+        let new_msg = new_message.content.clone();
+        if (is_ban_word(bn.clone(), new_msg.clone()) || new_msg.to_lowercase().contains(&bn))
             && new_message.author.id != ctx.cache.current_user().id
         {
             new_message
@@ -52,4 +53,44 @@ pub async fn dont_say_this_name(
     }
 
     Ok(())
+}
+
+fn is_ban_word(ban_word: String, msg: String) -> bool {
+    let msg_lc = msg.to_lowercase();
+    let binding = replace_caracters(msg_lc);
+    let msg_replace = binding.chars();
+
+    let mut count = 0;
+    let mut count_n = 0;
+
+    msg_replace.for_each(|c| { if ban_word.contains(c) {
+        count += 1
+    };
+    count_n +=1;
+    });
+
+    let mut is_b = false;
+
+    if !binding.is_empty() {
+      is_b = count.eq(&count_n);
+    }
+
+
+
+    println!("banido igual a : {}",is_b);
+    is_b
+}
+
+fn replace_caracters(msg: String) -> String {
+    let letras = msg.chars();
+    let mut msg_f = "".to_string();
+    for letra in letras {
+        if letra.is_digit(10) || (!letra.is_alphanumeric() && !letra.is_whitespace()){
+
+        } else {
+            msg_f.push(letra);
+        }
+    }
+    
+    msg_f
 }
