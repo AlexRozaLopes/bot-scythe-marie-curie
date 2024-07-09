@@ -17,6 +17,15 @@ pub async fn get_membros_redis(guild_id: GuildId) -> HashMap<UserId,Membro> {
     serde_json::from_str(&*membros_json).unwrap()
 }
 
+pub async fn get_ban_word_redis(guild_id: GuildId) -> Vec<String> {
+    let mut redis = get_redis_connection().await;
+    let mut string_guild = guild_id.to_string();
+    string_guild.push_str("ban_word");
+    let json_string: String = redis.get(string_guild).await.unwrap();
+
+    serde_json::from_str(&*json_string).unwrap()
+}
+
 pub async fn set_membros_redis(guild_id: GuildId, membros: HashMap<UserId,Membro>) -> Result<(),()> {
     let mut redis = get_redis_connection().await;
 

@@ -34,7 +34,7 @@ async fn main() {
                            slash_command::details_command::vote(), slash_command::life_command::life(), slash_command::details_command::info_about_me(),
                            slash_command::ban_words_command::add_ban_word(), slash_command::remove_ban_words_command::remove_ban_word(), slash_command::life_command::life_time(),
                            slash_command::life_command::get_life_time(),slash_command::silence_command::remove_silence_someone(),slash_command::silence_command::silence_someone(),
-                           slash_command::silence_command::list_silence_people()
+                           slash_command::silence_command::list_silence_people(), slash_command::remove_ban_words_command::list_ban_word()
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))

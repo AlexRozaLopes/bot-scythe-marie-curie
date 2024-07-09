@@ -75,9 +75,6 @@ fn is_ban_word(ban_word: String, msg: String) -> bool {
       is_b = count.eq(&count_n);
     }
 
-
-
-    println!("banido igual a : {}",is_b);
     is_b
 }
 
