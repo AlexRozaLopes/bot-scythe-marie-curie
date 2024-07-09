@@ -58,36 +58,49 @@ pub async fn dont_say_this_name(
 fn is_ban_word(ban_word: String, msg: String) -> bool {
     let msg_lc = msg.to_lowercase();
     let binding = replace_caracters(msg_lc);
-    let msg_replace = binding.chars();
+    let msg_replace = binding.0.chars();
 
     let mut count = 0;
     let mut count_n = 0;
-
-    msg_replace.for_each(|c| { if ban_word.contains(c) {
-        count += 1
-    };
-    count_n +=1;
-    });
-
     let mut is_b = false;
+    let mut is_v = true;
 
-    if !binding.is_empty() {
-      is_b = count.eq(&count_n);
+    if ban_word.len() > msg.len() {
+        msg_replace.for_each(|c| {
+            if ban_word.contains(c) {
+                count += 1
+            };
+            count_n += 1;
+            is_v = (count + binding.1.len()).eq(&ban_word.len());
+
+        });
+    } else {
+        ban_word.chars().for_each(|c| {
+            if binding.0.contains(c) {
+                count += 1
+            };
+            count_n += 1;
+        })
+    }
+
+    if !binding.0.is_empty() && !binding.1.is_empty() && is_v{
+        is_b = count.eq(&count_n);
     }
 
     is_b
 }
 
-fn replace_caracters(msg: String) -> String {
+fn replace_caracters(msg: String) -> (String, String) {
     let letras = msg.chars();
-    let mut msg_f = "".to_string();
+    let mut msg_valida = "".to_string();
+    let mut msg_invalida = "".to_string();
     for letra in letras {
-        if letra.is_digit(10) || (!letra.is_alphanumeric() && !letra.is_whitespace()){
-
+        if letra.is_digit(10) || (!letra.is_alphanumeric() && !letra.is_whitespace()) {
+            msg_invalida.push(letra);
         } else {
-            msg_f.push(letra);
+            msg_valida.push(letra);
         }
     }
-    
-    msg_f
+
+    (msg_valida,msg_invalida)
 }
