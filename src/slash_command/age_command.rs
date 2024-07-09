@@ -2,7 +2,7 @@ use poise::serenity_prelude as serenity;
 
 use crate::{Context, Error};
 
-/// Descubra quando sua conta foi criada!
+/// 🕰️| Descubra quando sua conta foi criada!
 #[poise::command(slash_command, prefix_command)]
 pub async fn age(
     ctx: Context<'_>,

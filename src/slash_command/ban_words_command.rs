@@ -6,7 +6,7 @@ use serenity::model::Permissions;
 use crate::{Context, Error};
 use crate::redis_connection::redis_con::get_redis_connection;
 
-/// Defina palavras que sao proibidas para esse servidor!
+/// 🚫| Defina palavras que sao proibidas para esse servidor!
 #[poise::command(slash_command, prefix_command)]
 pub async fn add_ban_word(
     ctx: Context<'_>,

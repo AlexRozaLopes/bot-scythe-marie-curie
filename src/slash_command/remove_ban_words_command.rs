@@ -7,7 +7,7 @@ use serenity::model::Permissions;
 use crate::{Context, Error};
 use crate::redis_connection::redis_con::{get_ban_word_redis, get_redis_connection};
 
-/// Tire o banimento de uma palavra!
+/// ✏️| Tire o banimento de uma palavra!
 #[poise::command(slash_command, prefix_command)]
 pub async fn remove_ban_word(
     ctx: Context<'_>,
@@ -44,7 +44,7 @@ pub async fn remove_ban_word(
     Ok(())
 }
 
-/// 🚫| Liste as palavras banidas!
+/// 📜| Liste as palavras banidas!
 #[poise::command(slash_command, prefix_command)]
 pub async fn list_ban_word(
     ctx: Context<'_>

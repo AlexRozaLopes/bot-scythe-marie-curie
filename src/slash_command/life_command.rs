@@ -6,7 +6,7 @@ use serenity::all::{Permissions, Timestamp};
 use crate::{Context, Error};
 use crate::redis_connection::redis_con::get_redis_connection;
 
-/// Descubra quando sua conta foi criada!
+/// 🕰️| Descubra quando sua conta foi criada!
 #[poise::command(slash_command, prefix_command)]
 pub async fn life(
     ctx: Context<'_>,
@@ -33,7 +33,7 @@ fn get_data_br(data: Timestamp) -> String {
     formatted
 }
 
-/// Defina o tempo de vida dos membros. 🪦🪦🪦
+/// 🪦| Defina o tempo de vida dos membros.
 #[poise::command(slash_command, prefix_command)]
 pub async fn life_time(
     ctx: Context<'_>,
@@ -54,7 +54,7 @@ pub async fn life_time(
     Ok(())
 }
 
-/// Descubra quanto dias foram definidos para a coleita! ⚔️
+/// ⚔️| Descubra quanto dias foram definidos para a coleita!
 #[poise::command(slash_command, prefix_command)]
 pub async fn get_life_time(
     ctx: Context<'_>,

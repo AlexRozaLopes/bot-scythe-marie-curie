@@ -9,7 +9,7 @@ use crate::{Context, Error};
 use crate::model::membro::Membro;
 use crate::redis_connection::redis_con::get_redis_connection;
 
-/// Show this help menu
+/// 📋| Show this help menu.
 #[poise::command(prefix_command, track_edits, slash_command)]
 pub async fn help(
     ctx: Context<'_>,
@@ -29,7 +29,7 @@ pub async fn help(
     Ok(())
 }
 
-/// vote em alguma coisa
+/// 🗳️| Vote em algo.
 ///
 /// Enter `~vote pumpkin` to vote for pumpkins
 #[poise::command(prefix_command, slash_command)]
@@ -50,7 +50,7 @@ pub async fn vote(
     Ok(())
 }
 
-/// Recupere todos os votos!
+/// 🗳️| Recupere todos os votos!
 ///
 /// Retrieve the number of votes either in general, or for a specific choice:
 /// ```
@@ -85,7 +85,7 @@ pub async fn getvotes(
     Ok(())
 }
 
-/// info sobre o bot!
+/// 📖| Info sobre o bot!
 #[poise::command(slash_command, prefix_command)]
 pub async fn info_about_me(ctx: Context<'_>) -> Result<(), Error> {
     let reply = {

@@ -9,7 +9,7 @@ use crate::event_handle::silence_handle::get_silence_membros;
 use crate::model::membro::Membro;
 use crate::redis_connection::redis_con::{get_membros_redis, set_membros_redis};
 
-/// silencie alguem. 🔇🔇🔇
+/// 🔇| Silencie alguem.
 #[poise::command(slash_command, prefix_command)]
 pub async fn silence_someone(
     ctx: Context<'_>,
@@ -38,7 +38,7 @@ pub async fn silence_someone(
     Ok(())
 }
 
-/// remova o silence de alguem. 📢
+/// 📢| Remova o silence de alguem.
 #[poise::command(slash_command, prefix_command)]
 pub async fn remove_silence_someone(
     ctx: Context<'_>,
@@ -65,7 +65,7 @@ pub async fn remove_silence_someone(
 }
 
 
-/// lista todos os membros silenciados atualmente!
+/// 📜| Lista todos os membros silenciados atualmente!
 #[poise::command(slash_command, prefix_command)]
 pub async fn list_silence_people(
     ctx: Context<'_>,
