@@ -75,12 +75,22 @@ fn is_ban_word(ban_word: String, msg: String) -> bool {
 
         });
     } else {
-        ban_word.chars().for_each(|c| {
-            if binding.0.contains(c) {
-                count += 1
-            };
-            count_n += 1;
-        })
+        if binding.0.len() < ban_word.len() {
+            binding.0.chars().for_each(|c|{
+                if ban_word.contains(c){
+                    count +=1
+                };
+                count_n +=1;
+            })
+
+        } else {
+            ban_word.chars().for_each(|c| {
+                if binding.0.contains(c) {
+                    count += 1
+                };
+                count_n += 1;
+            })
+        }
     }
 
     if !binding.0.is_empty() && !binding.1.is_empty() && is_v{
