@@ -64,7 +64,6 @@ async fn death(ctx: &serenity::Context, guild_id: GuildId, author_id: UserId) ->
         });
 
         let json_membros = serde_json::to_string(&membros_guild_atual)?;
-        dbg!(&json_membros);
         let _: () = membros.set(guild_id.to_string(), json_membros).await?;
 
         let membros_offline: HashMap<UserId, Membro> = membros_guild_atual.iter().filter(|(_, m)| !m.ativo())
