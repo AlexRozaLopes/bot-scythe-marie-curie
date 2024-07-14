@@ -1,10 +1,11 @@
 use crate::{Context, Error};
 
 
-/// 🎶| Musica!
+/// 🎧| Musica!
 #[poise::command(slash_command, prefix_command)]
 pub async fn play_song(
     ctx: Context<'_>,
+    #[description = "Digite a URL da musica OU seu NOME!"] url: String
 ) -> Result<(), Error> {
     let guild_id = ctx.guild_id().unwrap();
     let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
@@ -12,12 +13,21 @@ pub async fn play_song(
 
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
-        let client = ctx.data().http_client_voice.lock().unwrap().clone();
-        let string = "https://www.youtube.com/watch?v=q392mSz4VeY".to_string();
-        let source = songbird::input::YoutubeDl::new(client, string);
 
-        let input1 = source.clone().into();
-        let _ = handler.play_only_input(input1);
+
+        let client = ctx.data().http_client_voice.lock().unwrap().clone();
+
+        let is_url = url.starts_with("http");
+
+        let input_audio = if is_url {
+            songbird::input::YoutubeDl::new(client, url)
+        } else {
+            songbird::input::YoutubeDl::new_search(client, url)
+        };
+
+
+        let input1 = input_audio.clone().into();
+        let _ = handler.play_input(input1);
         ctx.say("play song!").await.unwrap();
     } else {
     }
