@@ -1,11 +1,43 @@
 use crate::{Context, Error};
 
-
 /// 🎧| Musica!
 #[poise::command(slash_command, prefix_command)]
 pub async fn play_song(
     ctx: Context<'_>,
-    #[description = "Digite a URL da musica OU seu NOME!"] url: String
+    #[description = "Digite a URL da musica OU seu NOME!"] url: String,
+) -> Result<(), Error> {
+    let guild_id = ctx.guild_id().unwrap();
+    let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
+
+
+    if let Some(handler_lock) = manager.get(guild_id) {
+        let mut handler = handler_lock.lock().await;
+
+
+        let client = ctx.data().http_client_voice.lock().unwrap().clone();
+
+        let is_url = url.starts_with("http");
+
+        let input_audio = if is_url {
+            songbird::input::YoutubeDl::new(client, url)
+        } else {
+            songbird::input::YoutubeDl::new_search(client, url)
+        };
+
+        let input1 = input_audio.clone().into();
+        let _ = handler.play_input(input1);
+
+        ctx.say("play song!").await.unwrap();
+    } else {}
+
+    Ok(())
+}
+
+/// 🎧| Coloque uma musica na lista!
+#[poise::command(slash_command, prefix_command)]
+pub async fn queue_song(
+    ctx: Context<'_>,
+    #[description = "Digite a URL da musica OU seu NOME!"] url: String,
 ) -> Result<(), Error> {
     let guild_id = ctx.guild_id().unwrap();
     let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
@@ -26,11 +58,9 @@ pub async fn play_song(
         };
 
 
-        let input1 = input_audio.clone().into();
-        let _ = handler.play_input(input1);
-        ctx.say("play song!").await.unwrap();
-    } else {
-    }
+        let _ = handler.enqueue_input(input_audio.into());
+        ctx.say("Musica add com sucesso").await.unwrap();
+    } else {}
 
     Ok(())
 }
@@ -67,7 +97,7 @@ pub async fn join_(
         }
     };
 
-    ctx.say("OK").await?;
+    ctx.say("Ok, I'll go there").await?;
 
     let _handler = manager.join(guild_id, channel_id).await;
 
@@ -90,7 +120,7 @@ pub async fn leave_(
     };
     let guild_id = guild.id;
 
-    ctx.say("OK").await?;
+    ctx.say("Bye!").await?;
 
     let _handler = manager.leave(guild_id).await;
 
