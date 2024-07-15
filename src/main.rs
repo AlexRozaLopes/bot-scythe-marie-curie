@@ -41,7 +41,7 @@ async fn main() {
                            slash_command::life_command::get_life_time(), slash_command::silence_command::remove_silence_someone(), slash_command::silence_command::silence_someone(),
                            slash_command::silence_command::list_silence_people(), slash_command::remove_ban_words_command::list_ban_word(),
                            voice_command::music_command::play_song(), voice_command::music_command::join_(),
-                           voice_command::music_command::leave_(),
+                           voice_command::music_command::leave_(),voice_command::music_command::skip_()
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))

@@ -96,3 +96,23 @@ pub async fn leave_(
     Ok(())
 }
 
+/// ⏭️| Proxima musica!
+#[poise::command(slash_command, prefix_command)]
+pub async fn skip_(
+    ctx: Context<'_>,
+) -> Result<(), Error> {
+    let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
+
+    ctx.say("Next Music!").await?;
+
+    if let Some(handler_lock) = manager.get(ctx.guild_id().unwrap()) {
+        let handler = handler_lock.lock().await;
+        let queue = handler.queue();
+        let _ = queue.skip();
+
+    } else { }
+
+    Ok(())
+}
+
+
