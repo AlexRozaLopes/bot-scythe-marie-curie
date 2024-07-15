@@ -25,41 +25,9 @@ pub async fn play_song(
         };
 
         let input1 = input_audio.clone().into();
-        let _ = handler.play_input(input1);
+        let _ = handler.enqueue_input(input1).await;
 
         ctx.say("play song!").await.unwrap();
-    } else {}
-
-    Ok(())
-}
-
-/// 🎧| Coloque uma musica na lista!
-#[poise::command(slash_command, prefix_command)]
-pub async fn queue_song(
-    ctx: Context<'_>,
-    #[description = "Digite a URL da musica OU seu NOME!"] url: String,
-) -> Result<(), Error> {
-    let guild_id = ctx.guild_id().unwrap();
-    let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
-
-
-    if let Some(handler_lock) = manager.get(guild_id) {
-        let mut handler = handler_lock.lock().await;
-
-
-        let client = ctx.data().http_client_voice.lock().unwrap().clone();
-
-        let is_url = url.starts_with("http");
-
-        let input_audio = if is_url {
-            songbird::input::YoutubeDl::new(client, url)
-        } else {
-            songbird::input::YoutubeDl::new_search(client, url)
-        };
-
-
-        let _ = handler.enqueue_input(input_audio.into());
-        ctx.say("Musica add com sucesso").await.unwrap();
     } else {}
 
     Ok(())
