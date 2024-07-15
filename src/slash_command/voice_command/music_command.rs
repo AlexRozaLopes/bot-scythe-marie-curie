@@ -24,10 +24,11 @@ pub async fn play_song(
             songbird::input::YoutubeDl::new_search(client, url)
         };
 
+        ctx.say("play song!").await.unwrap();
+
         let input1 = input_audio.clone().into();
         let _ = handler.enqueue_input(input1).await;
 
-        ctx.say("play song!").await.unwrap();
     } else {}
 
     Ok(())

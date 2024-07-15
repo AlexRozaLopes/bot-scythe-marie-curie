@@ -5,7 +5,7 @@ use poise::serenity_prelude as serenity;
 use reqwest::Client as HttpClientVoice;
 use serenity::all::GatewayIntents;
 use songbird::SerenityInit;
-
+use slash_command::voice_command;
 use crate::event_handle::add_handle::add_role_a_new_user;
 use crate::event_handle::create_roles::create_role_imunidade;
 use crate::event_handle::death_handle::{death_handle_voice, death_handler};
@@ -40,8 +40,8 @@ async fn main() {
                            slash_command::ban_words_command::add_ban_word(), slash_command::remove_ban_words_command::remove_ban_word(), slash_command::life_command::life_time(),
                            slash_command::life_command::get_life_time(), slash_command::silence_command::remove_silence_someone(), slash_command::silence_command::silence_someone(),
                            slash_command::silence_command::list_silence_people(), slash_command::remove_ban_words_command::list_ban_word(),
-                           slash_command::voice_command::play_song(), slash_command::voice_command::join_(),
-                           slash_command::voice_command::leave_(),
+                           voice_command::music_command::play_song(), voice_command::music_command::join_(),
+                           voice_command::music_command::leave_(),
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))
