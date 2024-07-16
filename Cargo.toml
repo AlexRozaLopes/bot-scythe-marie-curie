@@ -15,3 +15,4 @@ serde_json = "1.0.119"
 songbird = {version = "0.4.2", features = ["default","gateway","driver","rustls","serenity","receive","twilight","builtin-queue","native","full-doc"]}
 reqwest = {version = "0.11.27", features = ["default","json"]}
 symphonia = "0.5.4"
+strsim = "0.11.1"

@@ -170,6 +170,7 @@ dependencies = [
  "serde_json",
  "serenity",
  "songbird",
+ "strsim 0.11.1",
  "symphonia",
  "tokio",
 ]

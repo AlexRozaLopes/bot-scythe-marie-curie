@@ -1,6 +1,7 @@
 use poise::serenity_prelude as serenity;
 use redis::{AsyncCommands, RedisResult};
 use serenity::all::{Colour, CreateEmbed, CreateMessage, Message};
+use strsim::levenshtein;
 
 use crate::{Data, Error};
 use crate::redis_connection::redis_con::get_redis_connection;
@@ -64,6 +65,8 @@ fn is_ban_word(ban_word: String, msg: String) -> bool {
     let mut count_n = 0;
     let mut is_b = false;
     let mut is_v = true;
+    let mut is_validado_pelo_algoritmo = false;
+    let mut distancia_do_algoritmo = 0;
 
     if ban_word.len() > msg.len() {
         msg_replace.for_each(|c| {
@@ -72,20 +75,22 @@ fn is_ban_word(ban_word: String, msg: String) -> bool {
             };
             count_n += 1;
             is_v = (count + binding.1.len()).eq(&ban_word.len());
-
         });
     } else {
         if binding.0.len() < ban_word.len() {
-            binding.0.chars().for_each(|c|{
-                if ban_word.contains(c){
-                    count +=1
+            binding.0.chars().for_each(|c| {
+                if ban_word.contains(c) {
+                    count += 1
                 };
-                count_n +=1;
+                count_n += 1;
             })
-
         } else {
             ban_word.chars().for_each(|c| {
                 if binding.0.contains(c) {
+                    if !is_validado_pelo_algoritmo {
+                        distancia_do_algoritmo = validacao_usando_levenshtein(binding.0.clone(), c, ban_word.len(), ban_word.clone());
+                        is_validado_pelo_algoritmo = true;
+                    }
                     count += 1
                 };
                 count_n += 1;
@@ -93,11 +98,30 @@ fn is_ban_word(ban_word: String, msg: String) -> bool {
         }
     }
 
-    if !binding.0.is_empty() && !binding.1.is_empty() && is_v{
+    if !binding.0.is_empty() && !binding.1.is_empty() && is_v {
         is_b = count.eq(&count_n);
     }
 
+    let mut distancia_aceitavel = (ban_word.len() / 2) - 1;
+    if distancia_aceitavel.eq(&0) {
+        distancia_aceitavel = 1
+    }
+    if is_validado_pelo_algoritmo && distancia_do_algoritmo < distancia_aceitavel {
+        is_b = true
+    }
+    if is_validado_pelo_algoritmo && distancia_do_algoritmo > distancia_aceitavel {
+        is_b = false
+    }
+
     is_b
+}
+
+fn validacao_usando_levenshtein(p0: String, p1: char, p2: usize, ban_word: String) -> usize {
+    let inicio_da_palavra = p0.find(p1).unwrap();
+    let final_da_palavra = inicio_da_palavra + p2;
+    let slice = &p0[inicio_da_palavra..final_da_palavra];
+    let formated = slice.trim();
+    levenshtein(formated, &*ban_word)
 }
 
 fn replace_caracters(msg: String) -> (String, String) {
@@ -112,5 +136,5 @@ fn replace_caracters(msg: String) -> (String, String) {
         }
     }
 
-    (msg_valida,msg_invalida)
+    (msg_valida, msg_invalida)
 }
