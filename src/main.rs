@@ -10,6 +10,7 @@ use crate::event_handle::add_handle::add_role_a_new_user;
 use crate::event_handle::create_roles::create_role_imunidade;
 use crate::event_handle::death_handle::{death_handle_voice, death_handler};
 use crate::event_handle::fun_handle::dont_say_this_name;
+use crate::event_handle::music_handle::say_title_music;
 use crate::event_handle::silence_handle::{silence_handle, silence_handle_voice};
 use crate::slash_command::details_command::update_redis;
 
@@ -20,6 +21,7 @@ mod redis_connection;
 pub struct Data {
     votes: Mutex<HashMap<String, u32>>,
     http_client_voice: Mutex<HttpClientVoice>,
+    music: Mutex<String>,
 }
 
 // User data, which is stored and accessible in all command invocations
@@ -51,7 +53,7 @@ async fn main() {
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data { votes: Mutex::new(HashMap::new()), http_client_voice: Mutex::new(HttpClientVoice::new()) })
+                Ok(Data { votes: Mutex::new(HashMap::new()), http_client_voice: Mutex::new(HttpClientVoice::new()), music: Mutex::new("".to_string()) })
             })
         })
         .build();
@@ -88,6 +90,9 @@ async fn event_handler(
         }
         serenity::FullEvent::GuildMemberUpdate { new, .. } => {
             update_redis(new).await.unwrap();
+        }
+        serenity::FullEvent::InteractionCreate {interaction} => {
+            say_title_music(ctx,_framework,interaction).await.unwrap();
         }
         _ => {}
     }
