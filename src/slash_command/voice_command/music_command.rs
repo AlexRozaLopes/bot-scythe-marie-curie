@@ -34,7 +34,7 @@ pub async fn play_song(
 
             if output.status.success() {
                 let title_music = get_title_music(&output);
-                title_music_f = format!("play: {title_music}");
+                title_music_f = format!("{title_music}");
             }
 
             songbird::input::YoutubeDl::new(client, url)
@@ -50,7 +50,7 @@ pub async fn play_song(
 
             if output.status.success() {
                 let title_music = get_title_music(&output);
-                title_music_f = format!("play: {title_music}");
+                title_music_f = format!("{title_music}");
             }
 
             songbird::input::YoutubeDl::new_search(client, url)
