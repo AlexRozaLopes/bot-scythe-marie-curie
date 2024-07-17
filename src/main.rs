@@ -10,7 +10,7 @@ use crate::event_handle::add_handle::add_role_a_new_user;
 use crate::event_handle::create_roles::create_role_imunidade;
 use crate::event_handle::death_handle::{death_handle_voice, death_handler};
 use crate::event_handle::fun_handle::dont_say_this_name;
-use crate::event_handle::music_handle::say_title_music;
+use crate::event_handle::music_handle::{say_title_music};
 use crate::event_handle::silence_handle::{silence_handle, silence_handle_voice};
 use crate::slash_command::details_command::update_redis;
 
@@ -43,7 +43,8 @@ async fn main() {
                            slash_command::life_command::get_life_time(), slash_command::silence_command::remove_silence_someone(), slash_command::silence_command::silence_someone(),
                            slash_command::silence_command::list_silence_people(), slash_command::remove_ban_words_command::list_ban_word(),
                            voice_command::music_command::play_song(), voice_command::music_command::join_(),
-                           voice_command::music_command::leave_(),voice_command::music_command::skip_()
+                           voice_command::music_command::leave_(),voice_command::music_command::skip_(),voice_command::music_command::stop_(),
+                           voice_command::music_command::create_playlist(),voice_command::music_command::play_playlist()
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))

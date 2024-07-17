@@ -1,8 +1,12 @@
+use std::collections::HashMap;
 use std::process::{Command, Output};
 
 use serde_json::Value;
+use songbird::Call;
+use tokio::sync::MutexGuard;
 
 use crate::{Context, Error};
+use crate::redis_connection::redis_con::{get_playlist_redis, set_playlist_redis};
 
 /// 🎧| Musica!
 #[poise::command(slash_command, prefix_command)]
@@ -12,7 +16,7 @@ pub async fn play_song(
 ) -> Result<(), Error> {
     let guild_id = ctx.guild_id().unwrap();
     let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
-    let mut title_music_f= "".to_string();
+    let mut title_music_f = "".to_string();
 
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
@@ -158,6 +162,142 @@ pub async fn skip_(
     } else {}
 
     Ok(())
+}
+
+/// ⏹️| Pare a musica!
+#[poise::command(slash_command, prefix_command)]
+pub async fn stop_(
+    ctx: Context<'_>,
+) -> Result<(), Error> {
+    let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
+
+    ctx.say("Stop Music!").await?;
+
+    if let Some(handler_lock) = manager.get(ctx.guild_id().unwrap()) {
+        let handler = handler_lock.lock().await;
+        let queue = handler.queue();
+        let _ = queue.skip();
+    } else {}
+
+    Ok(())
+}
+
+
+/// 🎼| Crie sua playlist de musica!
+#[poise::command(slash_command, prefix_command)]
+pub async fn create_playlist(
+    ctx: Context<'_>,
+    #[description = "Digite o nome da playlist"]  nome: String,
+    #[description = "Digite sua lista de musicas"]  musicas: String,
+) -> Result<(), Error> {
+    let result = get_playlist_redis(ctx.author().id).await;
+
+
+    match result {
+        Err(_) => {
+            let mut playlist: HashMap<String, String> = HashMap::new();
+            playlist.insert(nome, musicas);
+            set_playlist_redis(ctx.author().id, playlist).await.unwrap();
+        }
+        Ok(mut list) => {
+            list.insert(nome, musicas);
+            set_playlist_redis(ctx.author().id, list).await.unwrap();
+        }
+    }
+
+    ctx.say("Lista salva com Sucesso!!!").await.unwrap();
+    Ok(())
+}
+
+/// 🎼| Toque sua playlist de musica!
+#[poise::command(slash_command, prefix_command)]
+pub async fn play_playlist(
+    ctx: Context<'_>,
+    #[description = "Digite o nome da playlist"]  nome: String,
+) -> Result<(), Error> {
+    let result = get_playlist_redis(ctx.author().id).await;
+
+    match result {
+        Err(_) => {
+            ctx.say("Nenhuma playlist com esse NOME encontrada.").await.unwrap();
+        }
+        Ok(list) => {
+            let option = list.get(&nome);
+            match option {
+                None => {
+                    ctx.say("Nenhuma playlist com esse NOME encontrada.").await.unwrap();
+                }
+                Some(lista) => {
+                    ctx.say("Playing...").await.unwrap();
+
+                    let guild_id = ctx.guild_id().unwrap();
+                    let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
+
+                    if let Some(handler_lock) = manager.get(guild_id) {
+                        let mut handler = handler_lock.lock().await;
+                        let mut titulos_da_musicas = "".to_string();
+
+                        let split = lista.split(";");
+                        for m in split {
+                            let string = song(ctx, m.to_string(), &mut handler, titulos_da_musicas).await;
+                            titulos_da_musicas = string;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+async fn song(ctx: Context<'_>, url: String, handler: &mut MutexGuard<'_, Call>, mut titulos_da_musicas: String) -> String {
+    let client = ctx.data().http_client_voice.lock().unwrap().clone();
+
+    let is_url = url.starts_with("http");
+
+
+    let input_audio = if is_url {
+        let output = Command::new("yt-dlp")
+            .arg("--dump-json")
+            .arg(url.clone())
+            .output()
+            .expect("Erro em buscar o JSON ;-;");
+
+
+        if output.status.success() {
+            let title_music = get_title_music(&output);
+            titulos_da_musicas.push_str(&*title_music);
+            titulos_da_musicas.push_str(";");
+        }
+
+        songbird::input::YoutubeDl::new(client, url)
+    } else {
+        let args_search = format!("ytsearch:{url}");
+
+        let output = Command::new("yt-dlp")
+            .arg("--dump-json")
+            .arg(args_search)
+            .output()
+            .expect("Erro em buscar o JSON ;-;");
+
+
+        if output.status.success() {
+            let title_music = get_title_music(&output);
+            titulos_da_musicas.push_str(&*title_music);
+            titulos_da_musicas.push_str(";");
+        }
+
+        songbird::input::YoutubeDl::new_search(client, url)
+    };
+
+    let input1 = input_audio.clone().into();
+    let _ = handler.enqueue_input(input1).await;
+
+    let mut mutex_guard = ctx.data().music.lock().unwrap();
+
+    *mutex_guard = titulos_da_musicas.clone();
+
+    titulos_da_musicas
 }
 
 
