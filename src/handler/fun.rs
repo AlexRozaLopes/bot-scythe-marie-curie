@@ -1,22 +1,16 @@
-use poise::serenity_prelude as serenity;
-use redis::{AsyncCommands, RedisResult};
-use serenity::all::{Colour, CreateEmbed, CreateMessage, Message};
-use strsim::levenshtein;
-
-use crate::{Data, Error};
-use crate::redis_connection::redis_con::get_redis_connection;
+use crate::prelude::*;
 
 pub async fn dont_say_this_name(
-    ctx: &serenity::Context,
-    _framework: poise::FrameworkContext<'_, Data, Error>,
+    ctx: &SerenityContext,
+    _framework: FrameworkContext<'_, Data, Error>,
     new_message: &Message,
-) -> Result<(), Error> {
+) -> Result<()> {
     let ban_words: Vec<String> = {
-        let mut redis = get_redis_connection().await;
+        let mut redis = redis_con::get_connection().await;
         let guild_id = new_message.guild_id;
 
         match guild_id {
-            None => { return Ok(()) }
+            None => return Ok(()),
             Some(_) => {}
         }
 
@@ -25,7 +19,7 @@ pub async fn dont_say_this_name(
         let ban_w: RedisResult<String> = redis.get(guild_id_string.clone()).await;
         match ban_w {
             Ok(x) => serde_json::from_str(&*x).unwrap(),
-            _ => vec!["voldemort".to_string()]
+            _ => vec!["voldemort".to_string()],
         }
     };
     for bn in ban_words {
@@ -34,22 +28,31 @@ pub async fn dont_say_this_name(
             && new_message.author.id != ctx.cache.current_user().id
         {
             new_message
-                .reply(
-                    ctx,
-                    "Nao falamos esse nome aqui!!!".to_string(),
-                )
+                .reply(ctx, "Nao falamos esse nome aqui!!!".to_string())
                 .await?;
             new_message.delete(ctx).await?;
 
             let intro_description = "Recentemente, recebemos relatos e observamos comportamentos que não estão de acordo com os padrões de conduta esperados neste servidor.".to_string();
-            let motivo_description = format!("Esse incidente ocorreu devido esta mensagem em particular: || **{}** ||", new_message.content);
-            let intro = CreateEmbed::new().title("Conduta Inapropriada").description(intro_description).color(Colour::RED);
-            let motivo = CreateEmbed::new().title("Principal Motivo").description(motivo_description).color(Colour::RED);
+            let motivo_description = format!(
+                "Esse incidente ocorreu devido esta mensagem em particular: || **{}** ||",
+                new_message.content
+            );
+            let intro = CreateEmbed::new()
+                .title("Conduta Inapropriada")
+                .description(intro_description)
+                .color(Colour::RED);
+            let motivo = CreateEmbed::new()
+                .title("Principal Motivo")
+                .description(motivo_description)
+                .color(Colour::RED);
             let message_into = CreateMessage::new().add_embed(intro);
             let message_motivo = CreateMessage::new().add_embed(motivo);
 
             new_message.author.direct_message(ctx, message_into).await?;
-            new_message.author.direct_message(ctx, message_motivo).await?;
+            new_message
+                .author
+                .direct_message(ctx, message_motivo)
+                .await?;
         }
     }
 
@@ -88,7 +91,12 @@ fn is_ban_word(ban_word: String, msg: String) -> bool {
             ban_word.chars().for_each(|c| {
                 if binding.0.contains(c) {
                     if !is_validado_pelo_algoritmo {
-                        distancia_do_algoritmo = validacao_usando_levenshtein(binding.0.clone(), c, ban_word.len(), ban_word.clone());
+                        distancia_do_algoritmo = validacao_usando_levenshtein(
+                            binding.0.clone(),
+                            c,
+                            ban_word.len(),
+                            ban_word.clone(),
+                        );
                         is_validado_pelo_algoritmo = true;
                     }
                     count += 1
@@ -121,7 +129,7 @@ fn validacao_usando_levenshtein(p0: String, p1: char, p2: usize, ban_word: Strin
     let final_da_palavra = inicio_da_palavra + p2;
     let slice = &p0[inicio_da_palavra..final_da_palavra];
     let formated = slice.trim();
-    levenshtein(formated, &*ban_word)
+    strsim::levenshtein(formated, &*ban_word)
 }
 
 fn replace_caracters(msg: String) -> (String, String) {

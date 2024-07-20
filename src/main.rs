@@ -1,50 +1,70 @@
-use std::collections::HashMap;
-use std::sync::Mutex;
+use crate::prelude::*;
 
-use poise::serenity_prelude as serenity;
-use reqwest::Client as HttpClientVoice;
-use serenity::all::GatewayIntents;
-use songbird::SerenityInit;
-use slash_command::voice_command;
-use crate::event_handle::add_handle::add_role_a_new_user;
-use crate::event_handle::create_roles::create_role_imunidade;
-use crate::event_handle::death_handle::{death_handle_voice, death_handler};
-use crate::event_handle::fun_handle::dont_say_this_name;
-use crate::event_handle::music_handle::{say_title_music};
-use crate::event_handle::silence_handle::{silence_handle, silence_handle_voice};
-use crate::slash_command::details_command::update_redis;
+pub mod handler {
+    pub mod add;
+    pub mod create_roles;
+    pub mod death;
+    pub mod fun;
+    pub mod music;
+    pub mod silence;
+}
+pub mod model {
+    pub mod member;
+}
+pub mod prelude;
+pub mod redis_con;
 
-pub mod slash_command;
-pub mod model;
-pub mod event_handle;
-mod redis_connection;
+mod slash_command {
+    pub mod general {
+        pub mod age;
+        pub mod ban_words;
+        pub mod details;
+        pub mod life;
+        pub mod remove_ban_words;
+        pub mod silence;
+    }
+    pub mod voice {
+        pub mod music;
+    }
+}
+
 pub struct Data {
     votes: Mutex<HashMap<String, u32>>,
     http_client_voice: Mutex<HttpClientVoice>,
     music: Mutex<String>,
 }
 
-// User data, which is stored and accessible in all command invocations
-type Error = Box<dyn std::error::Error + Send + Sync>;
-type Context<'a> = poise::Context<'a, Data, Error>;
-
 #[tokio::main]
 async fn main() {
     let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
-    let intents = serenity::GatewayIntents::all();
-    let x = intents.contains(GatewayIntents::GUILD_VOICE_STATES);
-    println!("{x}");
+    let intents = GatewayIntents::all();
+
+    use slash_command::*;
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![slash_command::age_command::age(), slash_command::details_command::getvotes(), slash_command::details_command::help(),
-                           slash_command::details_command::vote(), slash_command::life_command::life(), slash_command::details_command::info_about_me(),
-                           slash_command::ban_words_command::add_ban_word(), slash_command::remove_ban_words_command::remove_ban_word(), slash_command::life_command::life_time(),
-                           slash_command::life_command::get_life_time(), slash_command::silence_command::remove_silence_someone(), slash_command::silence_command::silence_someone(),
-                           slash_command::silence_command::list_silence_people(), slash_command::remove_ban_words_command::list_ban_word(),
-                           voice_command::music_command::play_song(), voice_command::music_command::join_(),
-                           voice_command::music_command::leave_(),voice_command::music_command::skip_(),voice_command::music_command::stop_(),
-                           voice_command::music_command::create_playlist(),voice_command::music_command::play_playlist()
+            commands: vec![
+                general::age::age(),
+                general::details::getvotes(),
+                general::details::help(),
+                general::details::vote(),
+                general::life::life(),
+                general::details::info_about_me(),
+                general::ban_words::add_ban_word(),
+                general::remove_ban_words::remove_ban_word(),
+                general::life::life_time(),
+                general::life::get_life_time(),
+                general::silence::remove_silence_someone(),
+                general::silence::silence_someone(),
+                general::silence::list_silence_people(),
+                general::remove_ban_words::list_ban_word(),
+                voice::music::play_song(),
+                voice::music::join_(),
+                voice::music::leave_(),
+                voice::music::skip_(),
+                voice::music::stop_(),
+                voice::music::create_playlist(),
+                voice::music::play_playlist(),
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))
@@ -54,46 +74,56 @@ async fn main() {
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data { votes: Mutex::new(HashMap::new()), http_client_voice: Mutex::new(HttpClientVoice::new()), music: Mutex::new("".to_string()) })
+                Ok(Data {
+                    votes: Mutex::new(HashMap::new()),
+                    http_client_voice: Mutex::new(HttpClientVoice::new()),
+                    music: Mutex::new("".to_string()),
+                })
             })
         })
         .build();
 
-    let client = serenity::ClientBuilder::new(token, intents)
+    let client = ClientBuilder::new(token, intents)
         .framework(framework)
         .register_songbird()
         .await;
+
     client.unwrap().start().await.unwrap();
 }
 
 async fn event_handler(
-    ctx: &serenity::Context,
-    event: &serenity::FullEvent,
-    _framework: poise::FrameworkContext<'_, Data, Error>,
-) -> Result<(), Error> {
+    ctx: &SerenityContext,
+    event: &FullEvent,
+    _framework: FrameworkContext<'_, Data, Error>,
+) -> Result<()> {
+    use handler::*;
     match event {
-        serenity::FullEvent::Ready { data_about_bot, .. } => {
+        FullEvent::Ready { data_about_bot, .. } => {
             println!("Logged in as {}", data_about_bot.user.name);
-            create_role_imunidade(ctx, _framework, data_about_bot).await?;
+            create_roles::create_role_imunidade(ctx, _framework, data_about_bot).await?;
         }
-        serenity::FullEvent::Message { new_message } => {
-            death_handler(ctx, _framework, new_message).await?;
-            dont_say_this_name(ctx, _framework, new_message).await?;
-            silence_handle(ctx, _framework, new_message).await?;
+        FullEvent::Message { new_message } => {
+            death::death_handler(ctx, _framework, new_message).await?;
+            fun::dont_say_this_name(ctx, _framework, new_message).await?;
+            silence::silence_handle(ctx, _framework, new_message).await?;
         }
-        serenity::FullEvent::GuildMemberAddition { new_member, .. } => {
+        FullEvent::GuildMemberAddition { new_member, .. } => {
             println!("membro novo!");
-            add_role_a_new_user(ctx, _framework, new_member).await?;
+            add::add_role_a_new_user(ctx, _framework, new_member).await?;
         }
-        serenity::FullEvent::VoiceStateUpdate { new, .. } => {
-            death_handle_voice(ctx, _framework, new).await?;
-            silence_handle_voice(ctx, _framework, new).await?;
+        FullEvent::VoiceStateUpdate { new, .. } => {
+            death::death_handle_voice(ctx, _framework, new).await?;
+            silence::silence_handle_voice(ctx, _framework, new).await?;
         }
-        serenity::FullEvent::GuildMemberUpdate { new, .. } => {
-            update_redis(new).await.unwrap();
+        FullEvent::GuildMemberUpdate { new, .. } => {
+            slash_command::general::details::update_redis(new)
+                .await
+                .unwrap();
         }
-        serenity::FullEvent::InteractionCreate {interaction} => {
-            say_title_music(ctx,_framework,interaction).await.unwrap();
+        FullEvent::InteractionCreate { interaction } => {
+            music::say_title_music(ctx, _framework, interaction)
+                .await
+                .unwrap();
         }
         _ => {}
     }
