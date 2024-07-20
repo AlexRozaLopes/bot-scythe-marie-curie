@@ -7,6 +7,7 @@ pub mod handler {
     pub mod fun;
     pub mod music;
     pub mod silence;
+    pub mod welcome;
 }
 pub mod model {
     pub mod member;
@@ -103,13 +104,14 @@ async fn event_handler(
             create_roles::create_role_imunidade(ctx, _framework, data_about_bot).await?;
         }
         FullEvent::Message { new_message } => {
-            death::death_handler(ctx, _framework, new_message).await?;
             fun::dont_say_this_name(ctx, _framework, new_message).await?;
+            death::death_handler(ctx, _framework, new_message).await?;
             silence::silence_handle(ctx, _framework, new_message).await?;
         }
         FullEvent::GuildMemberAddition { new_member, .. } => {
             println!("membro novo!");
             add::add_role_a_new_user(ctx, _framework, new_member).await?;
+            welcome::welcome_user(ctx, _framework, new_member).await?;
         }
         FullEvent::VoiceStateUpdate { new, .. } => {
             death::death_handle_voice(ctx, _framework, new).await?;
