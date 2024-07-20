@@ -1,17 +1,11 @@
-use chrono_tz::Tz;
-use poise::serenity_prelude as serenity;
-use redis::AsyncCommands;
-use serenity::all::{Permissions, Timestamp};
-
-use crate::{Context, Error};
-use crate::redis_connection::redis_con::get_redis_connection;
+use crate::prelude::*;
 
 /// 🕰️| Descubra quando sua conta foi criada!
 #[poise::command(slash_command, prefix_command)]
 pub async fn life(
     ctx: Context<'_>,
-    #[description = "Selecione um Usuario"] user: Option<serenity::User>,
-) -> Result<(), Error> {
+    #[description = "Selecione um Usuario"] user: Option<User>,
+) -> Result<()> {
     let u = user.as_ref().unwrap_or_else(|| ctx.author());
 
     let member = ctx.http().get_member(ctx.guild_id().unwrap(), u.id).await?;
@@ -38,17 +32,21 @@ fn get_data_br(data: Timestamp) -> String {
 pub async fn life_time(
     ctx: Context<'_>,
     #[description = "digite o numero de dias para a coleta! 🗡️"] days: i32,
-) -> Result<(), Error> {
+) -> Result<()> {
     let m = ctx.author_member().await.unwrap().clone();
     if m.permissions.unwrap().contains(Permissions::ADMINISTRATOR) {
         let mut guild_id = ctx.guild_id().unwrap().to_string();
         guild_id.push_str("life_time");
-        let mut redis = get_redis_connection().await;
+        let mut redis = redis_con::get_connection().await;
 
         let _: () = redis.set(guild_id, days).await.unwrap();
-        ctx.say("tempo definido com sucesso!").await.expect("TODO: panic message");
+        ctx.say("tempo definido com sucesso!")
+            .await
+            .expect("TODO: panic message");
     } else {
-        ctx.say("vc nao tem permissao para usar este comando!").await.expect("TODO: panic message");
+        ctx.say("vc nao tem permissao para usar este comando!")
+            .await
+            .expect("TODO: panic message");
     }
 
     Ok(())
@@ -56,10 +54,8 @@ pub async fn life_time(
 
 /// ⚔️| Descubra quanto dias foram definidos para a coleita!
 #[poise::command(slash_command, prefix_command)]
-pub async fn get_life_time(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
-    let mut redis = get_redis_connection().await;
+pub async fn get_life_time(ctx: Context<'_>) -> Result<()> {
+    let mut redis = redis_con::get_connection().await;
     let mut guild_id = ctx.guild_id().unwrap().to_string();
     let s = "life_time";
     guild_id.push_str(s);

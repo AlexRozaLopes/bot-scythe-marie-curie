@@ -1,26 +1,17 @@
-use std::collections::HashMap;
-use std::process::{Command, Output};
-
-use serde_json::Value;
-use songbird::Call;
-use tokio::sync::MutexGuard;
-
-use crate::{Context, Error};
-use crate::redis_connection::redis_con::{get_playlist_redis, set_playlist_redis};
+use crate::prelude::*;
 
 /// 🎧| Musica!
 #[poise::command(slash_command, prefix_command)]
 pub async fn play_song(
     ctx: Context<'_>,
-    #[description = "Digite a URL da musica OU seu NOME!"]  url: String,
-) -> Result<(), Error> {
+    #[description = "Digite a URL da musica OU seu NOME!"] url: String,
+) -> Result<()> {
     let guild_id = ctx.guild_id().unwrap();
     let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
     let mut title_music_f = "".to_string();
 
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
-
 
         let client = ctx.data().http_client_voice.lock().unwrap().clone();
 
@@ -35,10 +26,9 @@ pub async fn play_song(
                 .output()
                 .expect("Erro em buscar o JSON ;-;");
 
-
             if output.status.success() {
                 let title_music = get_title_music(&output);
-                title_music_f = format!("{title_music}");
+                title_music_f = title_music;
             }
 
             songbird::input::YoutubeDl::new(client, url)
@@ -51,10 +41,8 @@ pub async fn play_song(
                 .output()
                 .expect("Erro em buscar o JSON ;-;");
 
-
             if output.status.success() {
-                let title_music = get_title_music(&output);
-                title_music_f = format!("{title_music}");
+                title_music_f = get_title_music(&output);
             }
 
             songbird::input::YoutubeDl::new_search(client, url)
@@ -62,7 +50,7 @@ pub async fn play_song(
 
         let input1 = input_audio.clone().into();
         let _ = handler.enqueue_input(input1).await;
-    } else {}
+    }
 
     let mut mutex_guard = ctx.data().music.lock().unwrap();
 
@@ -86,9 +74,7 @@ fn get_title_music(output: &Output) -> String {
 
 /// 🎫| Chame a Marie para o chat de voz!
 #[poise::command(slash_command, prefix_command)]
-pub async fn join_(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub async fn join_(ctx: Context<'_>) -> Result<()> {
     let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
 
     // Armazene o valor do guild em uma variável para evitar o problema de vida temporária
@@ -111,7 +97,8 @@ pub async fn join_(
     let channel_id = match voice_state.channel_id {
         Some(channel_id) => channel_id,
         None => {
-            ctx.say("Não foi possível encontrar o ID do canal de voz.").await?;
+            ctx.say("Não foi possível encontrar o ID do canal de voz.")
+                .await?;
             return Ok(());
         }
     };
@@ -125,9 +112,7 @@ pub async fn join_(
 
 /// 🎫| Tire a Marie do chat de voz!
 #[poise::command(slash_command, prefix_command)]
-pub async fn leave_(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub async fn leave_(ctx: Context<'_>) -> Result<()> {
     let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
 
     // Armazene o valor do guild em uma variável para evitar o problema de vida temporária
@@ -148,9 +133,7 @@ pub async fn leave_(
 
 /// ⏭️| Proxima musica!
 #[poise::command(slash_command, prefix_command)]
-pub async fn skip_(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub async fn skip_(ctx: Context<'_>) -> Result<()> {
     let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
 
     ctx.say("Next Music!").await?;
@@ -159,16 +142,14 @@ pub async fn skip_(
         let handler = handler_lock.lock().await;
         let queue = handler.queue();
         let _ = queue.skip();
-    } else {}
+    }
 
     Ok(())
 }
 
 /// ⏹️| Pare a musica!
 #[poise::command(slash_command, prefix_command)]
-pub async fn stop_(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub async fn stop_(ctx: Context<'_>) -> Result<()> {
     let manager = songbird::get(ctx.serenity_context()).await.unwrap().clone();
 
     ctx.say("Stop Music!").await?;
@@ -177,31 +158,33 @@ pub async fn stop_(
         let handler = handler_lock.lock().await;
         let queue = handler.queue();
         let _ = queue.skip();
-    } else {}
+    }
 
     Ok(())
 }
-
 
 /// 🎼| Crie sua playlist de musica!
 #[poise::command(slash_command, prefix_command)]
 pub async fn create_playlist(
     ctx: Context<'_>,
-    #[description = "Digite o nome da playlist"]  nome: String,
-    #[description = "Digite sua lista de musicas"]  musicas: String,
-) -> Result<(), Error> {
-    let result = get_playlist_redis(ctx.author().id).await;
-
+    #[description = "Digite o nome da playlist"] nome: String,
+    #[description = "Digite sua lista de musicas"] musicas: String,
+) -> Result<()> {
+    let result = redis_con::get_playlist(ctx.author().id).await;
 
     match result {
         Err(_) => {
             let mut playlist: HashMap<String, String> = HashMap::new();
             playlist.insert(nome, musicas);
-            set_playlist_redis(ctx.author().id, playlist).await.unwrap();
+            redis_con::set_playlist(ctx.author().id, playlist)
+                .await
+                .unwrap();
         }
         Ok(mut list) => {
             list.insert(nome, musicas);
-            set_playlist_redis(ctx.author().id, list).await.unwrap();
+            redis_con::set_playlist(ctx.author().id, list)
+                .await
+                .unwrap();
         }
     }
 
@@ -213,19 +196,23 @@ pub async fn create_playlist(
 #[poise::command(slash_command, prefix_command)]
 pub async fn play_playlist(
     ctx: Context<'_>,
-    #[description = "Digite o nome da playlist"]  nome: String,
-) -> Result<(), Error> {
-    let result = get_playlist_redis(ctx.author().id).await;
+    #[description = "Digite o nome da playlist"] nome: String,
+) -> Result<()> {
+    let result = redis_con::get_playlist(ctx.author().id).await;
 
     match result {
         Err(_) => {
-            ctx.say("Nenhuma playlist com esse NOME encontrada.").await.unwrap();
+            ctx.say("Nenhuma playlist com esse NOME encontrada.")
+                .await
+                .unwrap();
         }
         Ok(list) => {
             let option = list.get(&nome);
             match option {
                 None => {
-                    ctx.say("Nenhuma playlist com esse NOME encontrada.").await.unwrap();
+                    ctx.say("Nenhuma playlist com esse NOME encontrada.")
+                        .await
+                        .unwrap();
                 }
                 Some(lista) => {
                     ctx.say("Playing...").await.unwrap();
@@ -239,7 +226,8 @@ pub async fn play_playlist(
 
                         let split = lista.split(";");
                         for m in split {
-                            let string = song(ctx, m.to_string(), &mut handler, titulos_da_musicas).await;
+                            let string =
+                                song(ctx, m.to_string(), &mut handler, titulos_da_musicas).await;
                             titulos_da_musicas = string;
                         }
                     }
@@ -250,11 +238,15 @@ pub async fn play_playlist(
     Ok(())
 }
 
-async fn song(ctx: Context<'_>, url: String, handler: &mut MutexGuard<'_, Call>, mut titulos_da_musicas: String) -> String {
+async fn song(
+    ctx: Context<'_>,
+    url: String,
+    handler: &mut MutexGuard<'_, Call>,
+    mut titulos_da_musicas: String,
+) -> String {
     let client = ctx.data().http_client_voice.lock().unwrap().clone();
 
     let is_url = url.starts_with("http");
-
 
     let input_audio = if is_url {
         let output = Command::new("yt-dlp")
@@ -262,7 +254,6 @@ async fn song(ctx: Context<'_>, url: String, handler: &mut MutexGuard<'_, Call>,
             .arg(url.clone())
             .output()
             .expect("Erro em buscar o JSON ;-;");
-
 
         if output.status.success() {
             let title_music = get_title_music(&output);
@@ -279,7 +270,6 @@ async fn song(ctx: Context<'_>, url: String, handler: &mut MutexGuard<'_, Call>,
             .arg(args_search)
             .output()
             .expect("Erro em buscar o JSON ;-;");
-
 
         if output.status.success() {
             let title_music = get_title_music(&output);
@@ -299,5 +289,3 @@ async fn song(ctx: Context<'_>, url: String, handler: &mut MutexGuard<'_, Call>,
 
     titulos_da_musicas
 }
-
-
