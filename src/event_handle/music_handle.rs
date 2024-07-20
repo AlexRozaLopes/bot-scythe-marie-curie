@@ -1,5 +1,4 @@
 use poise::{FrameworkContext, serenity_prelude as serenity};
-use redis::ToRedisArgs;
 use serenity::all::{EditInteractionResponse, Interaction};
 use serenity::builder::CreateEmbed;
 

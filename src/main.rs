@@ -12,6 +12,7 @@ use crate::event_handle::death_handle::{death_handle_voice, death_handler};
 use crate::event_handle::fun_handle::dont_say_this_name;
 use crate::event_handle::music_handle::{say_title_music};
 use crate::event_handle::silence_handle::{silence_handle, silence_handle_voice};
+use crate::event_handle::welcome_handle::welcome;
 use crate::slash_command::details_command::update_redis;
 
 pub mod slash_command;
@@ -82,8 +83,8 @@ async fn event_handler(
             silence_handle(ctx, _framework, new_message).await?;
         }
         serenity::FullEvent::GuildMemberAddition { new_member, .. } => {
-            println!("membro novo!");
             add_role_a_new_user(ctx, _framework, new_member).await?;
+            welcome(ctx,_framework,new_member).await?;
         }
         serenity::FullEvent::VoiceStateUpdate { new, .. } => {
             death_handle_voice(ctx, _framework, new).await?;

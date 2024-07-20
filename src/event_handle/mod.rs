@@ -4,3 +4,4 @@ pub mod add_handle;
 pub mod create_roles;
 pub mod silence_handle;
 pub mod music_handle;
+pub mod welcome_handle;
