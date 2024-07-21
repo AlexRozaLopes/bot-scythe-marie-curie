@@ -129,7 +129,8 @@ fn validacao_usando_levenshtein(p0: String, p1: char, p2: usize, ban_word: Strin
     let final_da_palavra = inicio_da_palavra + p2;
     let slice = &p0[inicio_da_palavra..final_da_palavra];
     let formated = slice.trim();
-    strsim::levenshtein(formated, &*ban_word)
+    let no_whitespace: String = formated.chars().filter(|c| !c.is_whitespace()).collect();
+    strsim::levenshtein(&*no_whitespace, &*ban_word)
 }
 
 fn replace_caracters(msg: String) -> (String, String) {
