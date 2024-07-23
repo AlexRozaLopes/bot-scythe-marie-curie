@@ -1,5 +1,5 @@
 name: ci-deploy
-on: [push]
+on: [ push ]
 jobs:
   docker-config:
     runs-on: ubuntu-latest
