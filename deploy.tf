@@ -36,7 +36,6 @@ resource "null_resource" "terminate_old_instance" {
 
   provisioner "local-exec" {
     command = <<EOT
-      echo "Terminating instance ${data.aws_instances.existing_instances.ids[0]}"
       aws ec2 terminate-instances --instance-ids ${data.aws_instances.existing_instances.ids[0]}
     EOT
   }
