@@ -1,4 +1,4 @@
-name: ci-build-push-docker-image
+name: ci-deploy
 on: [push]
 jobs:
   docker-config:
@@ -19,3 +19,22 @@ jobs:
           push: true
           tags: alexroza/bot-scythe-marie-curie:latest
           build-args: DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
+  deploy-aws:
+    runs-on: ubuntu-latest
+    needs: docker-config
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: terraform setup
+        uses: hashicorp/setup-terraform@v3
+
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+
+      - name: terraform init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
