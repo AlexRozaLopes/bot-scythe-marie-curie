@@ -1,0 +1,21 @@
+name: deploy-in-ec2
+on: [ push ]
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: terraform setup
+        uses: hashicorp/setup-terraform@v3
+
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
