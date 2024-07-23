@@ -35,9 +35,9 @@ resource "null_resource" "terminate_old_instance" {
   count = var.replace_instance && length(data.aws_instances.existing_instances.ids) > 0 ? 1 : 0
 
   provisioner "local-exec" {
-    command = <<EOT
+    command = <<-EOF
       aws ec2 terminate-instances --instance-ids ${data.aws_instances.existing_instances.ids[0]}
-    EOT
+    EOF
   }
 
   triggers = {
