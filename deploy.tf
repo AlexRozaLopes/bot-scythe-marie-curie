@@ -9,7 +9,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-west-1"
+  region = "us-west-2"
 }
 
 variable "replace_instance" {
@@ -18,7 +18,8 @@ variable "replace_instance" {
   default     = false
 }
 
-data "aws_instance" "old_instance" {
+# Data source to find existing instance by tag
+data "aws_instances" "existing_instances" {
   filter {
     name   = "tag:Name"
     values = ["ExampleAppServerInstance"]
@@ -31,15 +32,15 @@ data "aws_instance" "old_instance" {
 }
 
 resource "null_resource" "shutdown_old_instance" {
+  count = var.replace_instance && length(data.aws_instances.existing_instances.ids) > 0 ? 1 : 0
+
   provisioner "local-exec" {
-    command = "aws ec2 stop-instances --instance-ids ${data.aws_instance.old_instance.id}"
+    command = "aws ec2 stop-instances --instance-ids ${data.aws_instances.existing_instances.ids[0]}"
   }
 
   triggers = {
     always_run = timestamp()
   }
-
-  count = var.replace_instance ? 1 : 0
 }
 
 resource "aws_instance" "app_server" {
