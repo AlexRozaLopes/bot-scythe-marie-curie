@@ -110,7 +110,7 @@ fn is_ban_word(ban_word: String, msg: String) -> bool {
         is_b = count.eq(&count_n);
     }
 
-    let mut distancia_aceitavel = (ban_word.len() / 2) - 1;
+    let mut distancia_aceitavel = ban_word.len() / 2;
     if distancia_aceitavel.eq(&0) {
         distancia_aceitavel = 1
     }
