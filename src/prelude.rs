@@ -1,4 +1,4 @@
-pub use crate::{handler, model::member::MemberModel, redis_con, Data};
+pub use crate::{handler, model::member::MemberModel, redis::redis_con, Data};
 pub use chrono::{DateTime, Datelike, Utc};
 pub use chrono_tz::Tz;
 pub use poise::{

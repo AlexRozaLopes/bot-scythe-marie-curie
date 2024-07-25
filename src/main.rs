@@ -13,7 +13,10 @@ pub mod model {
     pub mod member;
 }
 pub mod prelude;
-pub mod redis_con;
+
+pub mod redis {
+    pub mod redis_con;
+}
 
 mod slash_command {
     pub mod general {

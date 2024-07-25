@@ -125,13 +125,21 @@ fn is_ban_word(ban_word: String, msg: String) -> bool {
 }
 
 fn validacao_usando_levenshtein(p0: String, p1: char, p2: usize, ban_word: String) -> usize {
-    let inicio_da_palavra = p0.find(p1).unwrap();
-    let final_da_palavra = inicio_da_palavra + p2;
-    let slice = &p0[inicio_da_palavra..final_da_palavra];
-    let formated = slice.trim();
-    let no_whitespace: String = formated.chars().filter(|c| !c.is_whitespace()).collect();
-    strsim::levenshtein(&*no_whitespace, &*ban_word)
+    return if let Some(inicio_da_palavra) = p0.find(p1) {
+        let final_da_palavra = inicio_da_palavra + p2;
+        if final_da_palavra <= p0.len() {
+            let slice = &p0[inicio_da_palavra..final_da_palavra];
+            let formated = slice.trim();
+            let no_whitespace: String = formated.chars().filter(|c| !c.is_whitespace()).collect();
+            strsim::levenshtein(&no_whitespace, &ban_word)
+        } else {
+            999
+        }
+    } else {
+        999
+    }
 }
+
 
 fn replace_caracters(msg: String) -> (String, String) {
     let letras = msg.chars();
