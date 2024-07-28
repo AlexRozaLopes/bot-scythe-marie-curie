@@ -18,7 +18,10 @@ pub mod redis {
     pub mod redis_con;
 }
 
-mod slash_command {
+pub mod slash_command {
+    pub mod game {
+        pub mod town_night;
+    }
     pub mod general {
         pub mod age;
         pub mod ban_words;
@@ -62,6 +65,7 @@ async fn main() {
                 general::silence::silence_someone(),
                 general::silence::list_silence_people(),
                 general::remove_ban_words::list_ban_word(),
+                game::town_night::play_town_night(),
                 voice::music::play_song(),
                 voice::music::join_(),
                 voice::music::leave_(),
