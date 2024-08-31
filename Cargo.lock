@@ -164,6 +164,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "poise",
+ "rand",
  "redis",
  "reqwest",
  "serde",

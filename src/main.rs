@@ -8,8 +8,10 @@ pub mod handler {
     pub mod music;
     pub mod silence;
     pub mod welcome;
+    pub mod  ia_response;
 }
 pub mod model {
+    pub mod game;
     pub mod member;
 }
 pub mod prelude;
@@ -19,6 +21,9 @@ pub mod redis {
 }
 
 pub mod slash_command {
+    pub mod ia {
+        pub mod ask_to_ia;
+    }
     pub mod game {
         pub mod town_night;
     }
@@ -39,6 +44,7 @@ pub struct Data {
     votes: Mutex<HashMap<String, u32>>,
     http_client_voice: Mutex<HttpClientVoice>,
     music: Mutex<String>,
+    ia_response: Mutex<String>,
 }
 
 #[tokio::main]
@@ -73,6 +79,8 @@ async fn main() {
                 voice::music::stop_(),
                 voice::music::create_playlist(),
                 voice::music::play_playlist(),
+                game::town_night::action_town_night(),
+                ia::ask_to_ia::ask_anything(),
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))
@@ -86,6 +94,7 @@ async fn main() {
                     votes: Mutex::new(HashMap::new()),
                     http_client_voice: Mutex::new(HttpClientVoice::new()),
                     music: Mutex::new("".to_string()),
+                    ia_response: Mutex::new("".to_string()),
                 })
             })
         })
@@ -131,6 +140,9 @@ async fn event_handler(
         }
         FullEvent::InteractionCreate { interaction } => {
             music::say_title_music(ctx, _framework, interaction)
+                .await
+                .unwrap();
+            ia_response::handle_ia_response(ctx, _framework, interaction)
                 .await
                 .unwrap();
         }
