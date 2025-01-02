@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 pub async fn get_connection() -> MultiplexedConnection {
-    // let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+     //let client = redis::Client::open("redis://127.0.0.1:6379/").unwrap();
     let client = redis::Client::open("redis://redis-bot/").unwrap();
     client.get_multiplexed_async_connection().await.unwrap()
 }
